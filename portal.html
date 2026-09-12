@@ -81,8 +81,8 @@
 </div>
 
 <script>
-    // Tarayıcı güvenlik duvarını aşan JSONP uyumlu API URL'niz
-    const API_URL = "https://google.com"; 
+    // ⚠️ 1. ADIMDA GOOGLE'DAN ALDIĞINIZ YENİ WEB URL'SİNİ BU TIRNAKLARIN İÇİNE YAPIŞTIRIN
+    const API_URL = "https://script.google.com/macros/s/AKfycbzvsf9cQc1LzY02xV4pGT30tLhgLXhl257rQNnSFpTF3T-UAPjLCAayfytS9nk293113w/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -109,17 +109,15 @@
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("isKartlari").innerHTML = `<div class="text-center mb-4"><div class="spinner"></div><p>Güvenli bağlantı kuruluyor, işleriniz çekiliyor...</p></div>`;
 
-        // JSONP Köprüsü: Güvenlik kilidini açar
         const script = document.createElement('script');
-        script.src = `${API_URL}?action=read&firma=${encodeURIComponent(aktifFirma)}&callback=veriGeriDonusIsle`;
+        script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
     }
 
-    // Google veriyi getirdiğinde tetiklenecek ana fonksiyon (Boşluk hataları tamamen temizlendi)
     function veriGeriDonusIsle(data) {
         mevcutIsler = data;
         let html = "";
-        document.getElementById("totalCount").innerText = `Toplam Kalem Sayısı: ${data.length}`;
+        document.getElementById("totalCount").innerText = "Toplam Kalem Sayısı: " + data.length;
         
         if(!data || data.length === 0) {
             html = `<div style="background-color: #fff3cd; color: #664d03; padding: 16px; border-radius: 6px; text-align: center; font-weight: bold;">Eşleşen aktif fason iş emri bulunamadı.</div>`;
@@ -133,7 +131,6 @@
                     if (uretimDurumu.includes("-") || uretimDurumu === "" || uretimDurumu === "undefined") uretimDurumu = "Bekliyor";
                     
                     let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
-                    
                     let miktar = is.uretilendir_miktar ? parseInt(formatVeri(is.uretilendir_miktar)) : 0;
                     if(isNaN(miktar)) miktar = 0;
 
@@ -157,3 +154,6 @@
                             <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Detay / Teslim:</b> <span style="color: #dc3545; font-weight: bold;">${formatVeri(is.teslimtarihi)}</span></div></div>
                         </div>
 
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 12px 0;">
+                        
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
