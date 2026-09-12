@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yan Sanayi İş Takip Portalı</title>
-    <link href="https://jsdelivr.net" rel="stylesheet">
+    <!-- Tasarımın ve butonların kesin olarak düzelmesini sağlayan resmi Bootstrap bağlantısı -->
+    <link href="https://jsdelivr.net" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid #3498db; }
@@ -52,12 +53,13 @@
 </div>
 
 <script>
-    // Güncellenmiş Google Apps Script Web Uygulaması Linkiniz
-    const API_URL = "https://script.google.com/macros/s/AKfycbzvsf9cQc1LzY02xV4pGT30tLhgLXhl257rQNnSFpTF3T-UAPjLCAayfytS9nk293113w/exec"; 
+    // En son ürettiğiniz ve çalışan Google Apps Script linkinizi buraya ekledim
+    const API_URL = "https://google.com"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
 
+    // Olay Dinleyicileri (Event Listeners)
     document.getElementById("btnListele").addEventListener("click", isleriListele);
     document.getElementById("btnTopluKaydet").addEventListener("click", topluKaydet);
     document.getElementById("btnCikis").addEventListener("click", () => { location.reload(); });
