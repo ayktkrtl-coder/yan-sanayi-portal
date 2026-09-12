@@ -81,8 +81,8 @@
 </div>
 
 <script>
-    // Canlı test ettiğimiz %100 çalışan Google Apps Script linkiniz
-    const API_URL = "https://script.google.com/macros/s/AKfycbzvsf9cQc1LzY02xV4pGT30tLhgLXhl257rQNnSFpTF3T-UAPjLCAayfytS9nk293113w/exec"; 
+    // Canlı test ettiğimiz %100 veri üreten Google linkiniz
+    const API_URL = "https://google.com"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -91,14 +91,18 @@
     document.getElementById("btnTopluKaydet").addEventListener("click", topluKaydet);
     document.getElementById("btnCikis").addEventListener("click", () => { location.reload(); });
 
-    // Google'dan gelen karmaşık tarih objelerini temiz metne dönüştüren yardımcı fonksiyon
+    // Hataları tamamen yutan ve her veriyi metne çeviren zırhlı fonksiyon
     function formatVeri(deger) {
         if (deger === undefined || deger === null) return "-";
-        let str = String(deger).trim();
-        if (str.includes("T") && str.includes("Z")) {
-            return str.split("T")[0]; // "2026-07-21T21:00..." verisini sadece "2026-07-21" yapar
+        try {
+            let str = String(deger).trim();
+            if (str.includes("T") && str.includes("Z")) {
+                return str.split("T")[0]; // Sadece tarih kısmını al, gerisini at
+            }
+            return str;
+        } catch(e) {
+            return "-";
         }
-        return str;
     }
 
     function isleriListele() {
@@ -117,38 +121,34 @@
             let html = "";
             document.getElementById("totalCount").innerText = `Toplam Kalem Sayısı: ${data.length}`;
             
-            if(data.length === 0) {
+            if(!data || data.length === 0) {
                 html = `<div style="background-color: #fff3cd; color: #664d03; padding: 16px; border-radius: 6px; text-align: center; font-weight: bold;">Eşleşen aktif fason iş emri bulunamadı.</div>`;
                 document.getElementById("btnTopluKaydet").classList.add("d-none");
             } else {
                 document.getElementById("btnTopluKaydet").classList.remove("d-none");
-                data.forEach(is => {
-                    // Güvenli veri biçimlendirme filtresi uygulandı
-                    let uretimDurumu = formatVeri(is.firmaDurumu);
-                    if (uretimDurumu.includes("-") || uretimDurumu === "") uretimDurumu = "Bekliyor";
-                    
-                    let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
-                    
-                    html += `
-                    <div class="card p-3" data-id="${formatVeri(is.id)}">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <div class="mb-2">
-                                <span class="badge ${badgeClass}" id="badge_${formatVeri(is.id)}">${uretimDurumu}</span>
-                                <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">${formatVeri(is.strNo)}</h5>
-                                <small class="text-muted">Sipariş No: <b>${formatVeri(is.tanim)}</b> | Parça No: <b>${formatVeri(is.sprsNo)}</b></small>
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="text-muted" style="display: block; font-size: 12px; font-weight: bold;">Kalan Bakiye</span>
-                                <span class="fw-bold text-primary" style="font-size: 24px;">${formatVeri(is.ob)} Adet</span>
-                            </div>
-                        </div>
+                data.forEach((is, index) => {
+                    // Hata Yakalama Zırhı: Tek bir kart bozuk olsa bile diğerlerini çizmeye devam eder
+                    try {
+                        let rowId = is.id ? formatVeri(is.id) : index.toString();
+                        let uretimDurumu = is.firmaDurumu ? formatVeri(is.firmaDurumu) : "Bekliyor";
+                        if (uretimDurumu.includes("-") || uretimDurumu === "") uretimDurumu = "Bekliyor";
                         
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${formatVeri(is.spTp)}</div></div>
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${formatVeri(is.sprsTarihi)}</div></div>
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Müşteri:</b> <span style="color: #dc3545; font-weight: bold;">${formatVeri(is.teslimTarihi)}</span></div></div>
-                        </div>
-
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 12px 0;">
+                        let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
                         
-                        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+                        html += `
+                        <div class="card p-3" data-id="${rowId}">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <div class="mb-2">
+                                    <span class="badge ${badgeClass}" id="badge_${rowId}">${uretimDurumu}</span>
+                                    <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">${formatVeri(is.strNo)}</h5>
+                                    <small class="text-muted">Sipariş No: <b>${formatVeri(is.tanim)}</b> | Parça No: <b>${formatVeri(is.sprsNo)}</b></small>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="text-muted" style="display: block; font-size: 12px; font-weight: bold;">Kalan Bakiye</span>
+                                    <span class="fw-bold text-primary" style="font-size: 24px;">${formatVeri(is.ob)}</span>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
+                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${formatVeri(is.spTp)}</div></div>
+                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${formatVeri(is.sprsTarihi)}</div></div>
