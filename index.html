@@ -12,11 +12,12 @@
         .badge-uretimde { background-color: #0dcaf0; color: #000; }
         .badge-bitti { background-color: #198754; }
         .info-block { background: #f8f9fa; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 5px; }
+        .sticky-top-panel { position: sticky; top: 0; background: rgba(244, 246, 249, 0.95); z-index: 1000; padding: 15px 0; border-bottom: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
 <div class="container py-4">
-    <div class="text-center mb-4">
+    <div class="text-center mb-4" id="headerSection">
         <h2 class="fw-bold text-primary">Yan Sanayi İş Takip Portalı</h2>
         <p class="text-muted">Güncel fason siparişlerinizi görüntüleyin ve durum bildirimi yapın.</p>
     </div>
@@ -32,21 +33,30 @@
         </div>
     </div>
 
-    <!-- İş Listesi Ekranı -->
+    <!-- İş Listesi Üst Sabit Panel -->
     <div id="listSection" class="d-none">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 id="welcomeText" class="fw-bold text-dark"></h4>
-            <button onclick="location.reload()" class="btn btn-sm btn-danger fw-bold">Çıkış Yap</button>
+        <div class="sticky-top-panel">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h4 id="welcomeText" class="fw-bold text-dark m-0"></h4>
+                    <small class="text-muted" id="totalCount"></small>
+                </div>
+                <div class="d-flex gap-2">
+                    <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success fw-bold px-4 shadow-sm">⚡ Tüm Listeyi Toplu Kaydet</button>
+                    <button onclick="location.reload()" class="btn btn-danger fw-bold">Çıkış Yap</button>
+                </div>
+            </div>
         </div>
-        <div id="isKartlari"></div>
+        <div id="isKartlari" class="mt-4"></div>
     </div>
 </div>
 
 <script>
-    // ⚠️ 2. Adımda aldığınız YENİ Google Web Uygulaması Linkini buraya yapıştırın
-    const API_URL = "https://script.google.com/macros/s/AKfycbyJ6u-omPyTZKhFZ2JT7nX21MhKhsy7RaILwz4hD0q5hMk2PpIwhNuMYshCQTiSQfmDFw/exec"; 
+    // ⚠️ 1. Adımda aldığınız YENİ Google Web Uygulaması Linkini buraya yapıştırın
+    const API_URL = "https://script.google.com/macros/s/AKfycby2mL8-jU5JC8ABl99mEbrXxwCyogQlbVZnf-ccJaSmpsZ9IbgTQg1DdKLf9cxLEcd6Zw/exec"; 
 
     let aktifFirma = "";
+    let mevcutIsler = [];
 
     function isleriListele() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
@@ -54,22 +64,28 @@
         
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
+        document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("isKartlari").innerHTML = `<div class="text-center my-5"><div class="spinner-border text-primary"></div><p class="mt-2">İşleriniz yükleniyor...</p></div>`;
 
         fetch(`${API_URL}?action=read&firma=${encodeURIComponent(aktifFirma)}`)
         .then(res => res.json())
         .then(data => {
+            mevcutIsler = data;
             let html = "";
+            document.getElementById("totalCount").innerText = `Toplam Kalem Sayısı: ${data.length}`;
+            
             if(data.length === 0) {
                 html = `<div class="alert alert-warning text-center fw-bold">Aktif fason iş emri bulunamadı. Lütfen firma adını ERP'dekiyle birebir aynı yazdığınızdan emin olun.</div>`;
+                document.getElementById("btnTopluKaydet").classList.add("d-none");
             } else {
+                document.getElementById("btnTopluKaydet").classList.remove("d-none");
                 data.forEach(is => {
                     let badgeClass = is.firmaDurumu === 'Bitti' ? 'badge-bitti' : (is.firmaDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
                     html += `
-                    <div class="card p-3">
+                    <div class="card p-3" data-id="${is.id}">
                         <div class="d-flex justify-content-between align-items-start flex-wrap">
                             <div class="mb-2">
-                                <span class="badge ${badgeClass} mb-2">${is.firmaDurumu}</span>
+                                <span class="badge ${badgeClass} mb-2" id="badge_${is.id}">${is.firmaDurumu}</span>
                                 <h5 class="fw-bold mb-1" style="color: #2c3e50;">${is.tanim}</h5>
                                 <small class="text-muted">Sipariş No: <b>${is.sprsNo}</b> | Satır No: <b>${is.strNo}</b> | 2. Kalem No: <b>${is.kalemNo}</b></small>
                             </div>
@@ -91,7 +107,7 @@
                         <div class="row g-2 align-items-end">
                             <div class="col-6 col-md-3">
                                 <label class="small fw-bold text-secondary mb-1">Üretim Durumu</label>
-                                <select id="durum_${is.id}" class="form-select form-select-sm">
+                                <select id="durum_${is.id}" class="form-select form-select-sm" onchange="badgeGuncelle(${is.id}, this.value)">
                                     <option value="Bekliyor" ${is.firmaDurumu=='Bekliyor'?'selected':''}>Bekliyor</option>
                                     <option value="Üretimde" ${is.firmaDurumu=='Üretimde'?'selected':''}>Üretimde</option>
                                     <option value="Bitti" ${is.firmaDurumu=='Bitti'?'selected':''}>Bitti / Sevk Edildi</option>
@@ -101,12 +117,9 @@
                                 <label class="small fw-bold text-secondary mb-1">Üretilen Miktar</label>
                                 <input type="number" id="adet_${is.id}" class="form-control form-control-sm" placeholder="Miktar girin" value="${is.uretilenMiktar}">
                             </div>
-                            <div class="col-12 col-md-4">
+                            <div class="col-12 col-md-6">
                                 <label class="small fw-bold text-secondary mb-1">Yan Sanayi Notu / Açıklama</label>
                                 <input type="text" id="not_${is.id}" class="form-control form-control-sm" placeholder="Fire, gecikme vb. açıklamalar" value="${is.yanSanayiNotu}">
-                            </div>
-                            <div class="col-12 col-md-2">
-                                <button onclick="guncelle(${is.id})" class="btn btn-sm btn-success w-100 fw-bold py-2">Güncelle</button>
                             </div>
                         </div>
                     </div>`;
@@ -117,20 +130,49 @@
         });
     }
 
-    function guncelle(rowId) {
-        const durum = document.getElementById(`durum_${rowId}`).value;
-        const uretilen = document.getElementById(`adet_${rowId}`).value;
-        const not = document.getElementById(`not_${rowId}`).value;
+    function badgeGuncelle(id, deger) {
+        let el = document.getElementById(`badge_${id}`);
+        el.innerText = deger;
+        el.className = "badge mb-2 " + (deger === 'Bitti' ? 'badge-bitti' : (deger === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor'));
+    }
 
-        fetch(`${API_URL}?action=update&rowId=${rowId}&durum=${encodeURIComponent(durum)}&uretilen=${encodeURIComponent(uretilen)}&not=${encodeURIComponent(not)}`)
-        .then(res => res.text())
-        .then(response => {
-            if(response === "BAŞARILI") {
-                alert("Durum güncellemesi başarıyla merkeze iletildi!");
-                isleriListele();
-            } else {
-                alert("Bir hata oluştu, lütfen tekrar deneyin.");
-            }
+    function topluKaydet() {
+        if(mevcutIsler.length === 0) return;
+        
+        let updates = [];
+        mevcutIsler.forEach(is => {
+            let durum = document.getElementById(`durum_${is.id}`).value;
+            let uretilen = document.getElementById(`adet_${is.id}`).value;
+            let not = document.getElementById(`not_${is.id}`).value;
+            
+            updates.push({
+                rowId: is.id,
+                durum: durum,
+                uretilen: uretilen,
+                not: not
+            });
+        });
+
+        let btn = document.getElementById("btnTopluKaydet");
+        btn.disabled = true;
+        btn.innerText = "⌛ Kaydediliyor, lütfen bekleyin...";
+
+        fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors", // CORS engelini aşmak için Google sistemine özel mod
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ updates: updates })
+        })
+        .then(() => {
+            alert(`Tebrikler! ${updates.length} kalemin tamamı başarıyla güncellendi ve merkeze iletildi.`);
+            btn.disabled = false;
+            btn.innerText = "⚡ Tüm Listeyi Toplu Kaydet";
+            isleriListele();
+        })
+        .catch(err => {
+            alert("Bir hata oluşti: " + err);
+            btn.disabled = false;
+            btn.innerText = "⚡ Tüm Listeyi Toplu Kaydet";
         });
     }
 </script>
