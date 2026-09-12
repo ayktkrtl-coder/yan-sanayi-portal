@@ -81,7 +81,7 @@
 </div>
 
 <script>
-    // Tarayıcı sekmesindeki o çalışan canlı Google linkiniz buraya tanımlandı
+    // Canlı test ettiğimiz %100 çalışan Google Apps Script linkiniz
     const API_URL = "https://script.google.com/macros/s/AKfycbzvsf9cQc1LzY02xV4pGT30tLhgLXhl257rQNnSFpTF3T-UAPjLCAayfytS9nk293113w/exec"; 
 
     let aktifFirma = "";
@@ -90,6 +90,16 @@
     document.getElementById("btnListele").addEventListener("click", isleriListele);
     document.getElementById("btnTopluKaydet").addEventListener("click", topluKaydet);
     document.getElementById("btnCikis").addEventListener("click", () => { location.reload(); });
+
+    // Google'dan gelen karmaşık tarih objelerini temiz metne dönüştüren yardımcı fonksiyon
+    function formatVeri(deger) {
+        if (deger === undefined || deger === null) return "-";
+        let str = String(deger).trim();
+        if (str.includes("T") && str.includes("Z")) {
+            return str.split("T")[0]; // "2026-07-21T21:00..." verisini sadece "2026-07-21" yapar
+        }
+        return str;
+    }
 
     function isleriListele() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
@@ -113,35 +123,32 @@
             } else {
                 document.getElementById("btnTopluKaydet").classList.remove("d-none");
                 data.forEach(is => {
-                    // Google'dan gelen verilerin gerçek sütun sırasına göre eşleştirmeleri güncelledim
-                    let uretimDurumu = is.firmaDurumu || "Bekliyor";
+                    // Güvenli veri biçimlendirme filtresi uygulandı
+                    let uretimDurumu = formatVeri(is.firmaDurumu);
+                    if (uretimDurumu.includes("-") || uretimDurumu === "") uretimDurumu = "Bekliyor";
+                    
                     let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
                     
                     html += `
-                    <div class="card p-3" data-id="${is.id}">
+                    <div class="card p-3" data-id="${formatVeri(is.id)}">
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
                             <div class="mb-2">
-                                <span class="badge ${badgeClass}" id="badge_${is.id}">${uretimDurumu}</span>
-                                <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">${is.strNo}</h5>
-                                <small class="text-muted">Sipariş No: <b>${is.tanim}</b> | Parça No: <b>${is.sprsNo}</b></small>
+                                <span class="badge ${badgeClass}" id="badge_${formatVeri(is.id)}">${uretimDurumu}</span>
+                                <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">${formatVeri(is.strNo)}</h5>
+                                <small class="text-muted">Sipariş No: <b>${formatVeri(is.tanim)}</b> | Parça No: <b>${formatVeri(is.sprsNo)}</b></small>
                             </div>
                             <div style="text-align: right;">
                                 <span class="text-muted" style="display: block; font-size: 12px; font-weight: bold;">Kalan Bakiye</span>
-                                <span class="fw-bold text-primary" style="font-size: 24px;">${is.ob} Adet</span>
+                                <span class="fw-bold text-primary" style="font-size: 24px;">${formatVeri(is.ob)} Adet</span>
                             </div>
                         </div>
                         
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${is.spTp}</div></div>
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${is.sprsTarihi}</div></div>
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Müşteri:</b> <span style="color: #dc3545; font-weight: bold;">${is.teslimTarihi}</span></div></div>
+                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${formatVeri(is.spTp)}</div></div>
+                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${formatVeri(is.sprsTarihi)}</div></div>
+                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Müşteri:</b> <span style="color: #dc3545; font-weight: bold;">${formatVeri(is.teslimTarihi)}</span></div></div>
                         </div>
 
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 12px 0;">
                         
                         <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
-                            <div style="flex: 1; min-width: 150px;">
-                                <label class="text-muted" style="font-size: 12px; font-weight: bold; margin-bottom: 4px; display: block;">Üretim Durumu</label>
-                                <select id="durum_${is.id}" class="form-select" onchange="badgeGuncelle(${is.id}, this.value)">
-                                    <option value="Bekliyor" ${uretimDurumu=='Bekliyor'?'selected':''}>Bekliyor</option>
-                                    <option value="Üretimde" ${uretimDurumu=='Üretimde'?'selected':''}>Üretimde</option>
