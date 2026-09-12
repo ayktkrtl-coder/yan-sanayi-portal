@@ -91,13 +91,13 @@
     document.getElementById("btnTopluKaydet").addEventListener("click", topluKaydet);
     document.getElementById("btnCikis").addEventListener("click", () => { location.reload(); });
 
-    // Hataları tamamen yutan ve her veriyi metne çeviren zırhlı fonksiyon
+    // Verileri güvenli şekilde temiz metne çeviren filtre fonksiyonu
     function formatVeri(deger) {
         if (deger === undefined || deger === null) return "-";
         try {
             let str = String(deger).trim();
             if (str.includes("T") && str.includes("Z")) {
-                return str.split("T")[0]; // Sadece tarih kısmını al, gerisini at
+                return str.split("T")[0]; // Sadece tarih kısmını al (Yıl-Ay-Gün)
             }
             return str;
         } catch(e) {
@@ -127,11 +127,11 @@
             } else {
                 document.getElementById("btnTopluKaydet").classList.remove("d-none");
                 data.forEach((is, index) => {
-                    // Hata Yakalama Zırhı: Tek bir kart bozuk olsa bile diğerlerini çizmeye devam eder
                     try {
+                        // Değişken isimleri tamamen Google'dan gelen küçük harfli (lowercase) formata çekildi
                         let rowId = is.id ? formatVeri(is.id) : index.toString();
-                        let uretimDurumu = is.firmaDurumu ? formatVeri(is.firmaDurumu) : "Bekliyor";
-                        if (uretimDurumu.includes("-") || uretimDurumu === "") uretimDurumu = "Bekliyor";
+                        let uretimDurumu = is.firmadurumu ? formatVeri(is.firmadurumu) : "Bekliyor";
+                        if (uretimDurumu.includes("-") || uretimDurumu === "" || uretimDurumu === "undefined") uretimDurumu = "Bekliyor";
                         
                         let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
                         
@@ -140,8 +140,8 @@
                             <div class="d-flex justify-content-between align-items-center flex-wrap">
                                 <div class="mb-2">
                                     <span class="badge ${badgeClass}" id="badge_${rowId}">${uretimDurumu}</span>
-                                    <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">${formatVeri(is.strNo)}</h5>
-                                    <small class="text-muted">Sipariş No: <b>${formatVeri(is.tanim)}</b> | Parça No: <b>${formatVeri(is.sprsNo)}</b></small>
+                                    <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">${formatVeri(is.strno)}</h5>
+                                    <small class="text-muted">Sipariş No: <b>${formatVeri(is.tanim)}</b> | Parça No: <b>${formatVeri(is.sprsno)}</b></small>
                                 </div>
                                 <div style="text-align: right;">
                                     <span class="text-muted" style="display: block; font-size: 12px; font-weight: bold;">Kalan Bakiye</span>
@@ -150,5 +150,5 @@
                             </div>
                             
                             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
-                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${formatVeri(is.spTp)}</div></div>
-                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${formatVeri(is.sprsTarihi)}</div></div>
+                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${formatVeri(is.sptp)}</div></div>
+                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${formatVeri(is.sprstarihi)}</div></div>
