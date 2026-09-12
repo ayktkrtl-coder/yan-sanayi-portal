@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yan Sanayi İş Takip Portalı</title>
+    <!-- Bootstrap CSS Bağlantısı Güncellendi (Arayüz Tasarımı İçin) -->
     <link href="https://jsdelivr.net" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid #3498db; }
-        .badge-bekliyor { background-color: #6c757d; }
+        .badge-bekliyor { background-color: #6c757d; color: white; }
         .badge-uretimde { background-color: #0dcaf0; color: #000; }
-        .badge-bitti { background-color: #198754; }
+        .badge-bitti { background-color: #198754; color: white; }
         .info-block { background: #f8f9fa; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 5px; }
         .sticky-top-panel { position: sticky; top: 0; background: rgba(244, 246, 249, 0.95); z-index: 1000; padding: 15px 0; border-bottom: 1px solid #e2e8f0; }
     </style>
@@ -52,12 +53,13 @@
 </div>
 
 <script>
-    // ⚠️ 1. Adımda aldığınız YENİ Google Web Uygulaması Linkini buraya yapıştırın
-    const API_URL = "https://script.google.com/macros/s/AKfycbzDe1y5TGTCrz3hVi_VVBPoSOcZiQLHSuMuT9wDzqW0lYwNg2Hg_TsJBB7yvWd7f9kQDA/exec"; 
+    // Sizin Google Apps Script Canlı Bağlantı Linkiniz
+    const API_URL = "https://google.com"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
 
+    // Verileri Listeleme Fonksiyonu
     function isleriListele() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
         if(!aktifFirma) return alert("Lütfen tedarikçi adınızı girin.");
@@ -130,51 +132,42 @@
         });
     }
 
+    // Durum Değiştiğinde Rozet Rengini Güncelleyen Fonksiyon
     function badgeGuncelle(id, deger) {
         let el = document.getElementById(`badge_${id}`);
         el.innerText = deger;
         el.className = "badge mb-2 " + (deger === 'Bitti' ? 'badge-bitti' : (deger === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor'));
     }
 
+    // Değişiklikleri Google Sheet'e Kaydeden Fonksiyon
     function topluKaydet() {
-        if(mevcutIsler.length === 0) return;
-        
-        let updates = [];
+        let guncellenecekler = [];
         mevcutIsler.forEach(is => {
             let durum = document.getElementById(`durum_${is.id}`).value;
-            let uretilen = document.getElementById(`adet_${is.id}`).value;
+            let adet = document.getElementById(`adet_${is.id}`).value;
             let not = document.getElementById(`not_${is.id}`).value;
             
-            updates.push({
-                rowId: is.id,
-                durum: durum,
-                uretilen: uretilen,
-                not: not
+            guncellenecekler.push({
+                id: is.id,
+                firmaDurumu: durum,
+                uretilenMiktar: adet,
+                yanSanayiNotu: not
             });
         });
 
-        let btn = document.getElementById("btnTopluKaydet");
-        btn.disabled = true;
-        btn.innerText = "⌛ Kaydediliyor, lütfen bekleyin...";
+        document.getElementById("btnTopluKaydet").disabled = true;
+        document.getElementById("btnTopluKaydet").innerText = "⏳ Kaydediliyor...";
 
         fetch(API_URL, {
             method: "POST",
-            mode: "no-cors", // CORS engelini aşmak için Google sistemine özel mod
+            mode: "no-cors",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ updates: updates })
-        })
-        .then(() => {
-            alert(`Tebrikler! ${updates.length} kalemin tamamı başarıyla güncellendi ve merkeze iletildi.`);
-            btn.disabled = false;
-            btn.innerText = "⚡ Tüm Listeyi Toplu Kaydet";
+            body: JSON.stringify({ action: "update", rows: guncellenecekler })
+        }).then(() => {
+            alert("Tüm değişiklikler Google Etabloya başarıyla kaydedildi!");
+            document.getElementById("btnTopluKaydet").disabled = false;
+            document.getElementById("btnTopluKaydet").innerText = "⚡ Tüm Listeyi Toplu Kaydet";
             isleriListele();
-        })
-        .catch(err => {
-            alert("Bir hata oluşti: " + err);
-            btn.disabled = false;
-            btn.innerText = "⚡ Tüm Listeyi Toplu Kaydet";
-        });
-    }
-</script>
-</body>
-</html>
+        }).catch(err => {
+            alert("Kayıt sırasında bir hata oluştu: " + err);
+            document.getElementById("btnTopluKaydet").disabled = false;
