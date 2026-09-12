@@ -51,7 +51,7 @@
         <p class="text-muted">Güncel fason siparişlerinizi görüntüleyin ve durum bildirimi yapın.</p>
     </div>
 
-    <!-- Giriş Ekranı (onclick metodu doğrudan butona geri bağlandı) -->
+    <!-- Giriş Ekranı -->
     <div id="loginSection" class="row justify-content-center">
         <div style="width: 100%; max-width: 450px;">
             <div class="card" style="border-left: none;">
@@ -81,7 +81,7 @@
 </div>
 
 <script>
-    // Canlı test ettiğimiz %100 temiz veri döndüren Google linkiniz
+    // En son ürettiğiniz ve çalışan Google Apps Script linkiniz
     const API_URL = "https://google.com"; 
 
     let aktifFirma = "";
@@ -92,7 +92,7 @@
         try {
             let str = String(deger).trim();
             if (str.includes("T") && str.includes("Z")) {
-                return str.split("T")[0]; // Sadece tarih kısmını al (Yıl-Ay-Gün)
+                return str.split("T")[0]; 
             }
             return str;
         } catch(e) {
@@ -100,6 +100,7 @@
         }
     }
 
+    // ⚡ TARAYICI GÜVENLİK DUVARINI (CORS) YASAL OLARAK DELEN DİNAMİK YAPICI
     function isleriListele() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
         if(!aktifFirma) return alert("Lütfen tedarikçi adınızı girin.");
@@ -107,48 +108,49 @@
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
         document.getElementById("headerSection").classList.add("d-none");
-        document.getElementById("isKartlari").innerHTML = `<div class="text-center mb-4"><div class="spinner"></div><p>İşleriniz yükleniyor, lütfen bekleyin...</p></div>`;
+        document.getElementById("isKartlari").innerHTML = `<div class="text-center mb-4"><div class="spinner"></div><p>Güvenli bağlantı kuruluyor, işleriniz çekiliyor...</p></div>`;
 
-        fetch(`${API_URL}?action=read&firma=${encodeURIComponent(aktifFirma)}`)
-        .then(res => res.json())
-        .then(data => {
-            mevcutIsler = data;
-            let html = "";
-            document.getElementById("totalCount").innerText = `Toplam Kalem Sayısı: ${data.length}`;
-            
-            if(!data || data.length === 0) {
-                html = `<div style="background-color: #fff3cd; color: #664d03; padding: 16px; border-radius: 6px; text-align: center; font-weight: bold;">Eşleşen aktif fason iş emri bulunamadı.</div>`;
-                document.getElementById("btnTopluKaydet").classList.add("d-none");
-            } else {
-                document.getElementById("btnTopluKaydet").classList.remove("d-none");
-                data.forEach((is, index) => {
-                    try {
-                        let rowId = is.id ? formatVeri(is.id) : index.toString();
-                        let uretimDurumu = is.firmadurumu ? formatVeri(is.firmadurumu) : "Bekliyor";
-                        if (uretimDurumu.includes("-") || uretimDurumu === "" || uretimDurumu === "undefined") uretimDurumu = "Bekliyor";
-                        
-                        let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
-                        
-                        let miktar = is.uretilendir_miktar ? parseInt(formatVeri(is.uretilendir_miktar)) : 0;
-                        if(isNaN(miktar)) miktar = 0;
+        // JSONP Köprüsü kuruyoruz: Dinamik bir görünmez script elementi açıyoruz
+        const script = document.createElement('script');
+        script.src = `${API_URL}?action=read&firma=${encodeURIComponent(aktifFirma)}&callback=veriGeriDonusIsle`;
+        document.body.appendChild(script); // Bu satır tarayıcı engelini tamamen kırar
+    }
 
-                        html += `
-                        <div class="card p-3" data-id="${rowId}">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                                <div class="mb-2">
-                                    <span class="badge ${badgeClass}" id="badge_${rowId}">${uretimDurumu}</span>
-                                    <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">${formatVeri(is.strno)}</h5>
-                                    <small class="text-muted">Sipariş No: <b>${formatVeri(is.tanim)}</b> | Parça No: <b>${formatVeri(is.sprsno)}</b></small>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span class="text-muted" style="display: block; font-size: 12px; font-weight: bold;">Kalan Bakiye</span>
-                                    <span class="fw-bold text-primary" style="font-size: 24px;">${formatVeri(is.ob)}</span>
-                                </div>
+    // Google veriyi getirdiğinde tetiklenecek ana merkez fonksiyonu
+    function veriGeriDonusIsle(data) {
+        mevcutIsler = data;
+        let html = "";
+        document.getElementById("totalCount").innerText = `Toplam Kalem Sayısı: ${data.length}`;
+        
+        if(!data || data.length === 0) {
+            html = `<div style="background-color: #fff3cd; color: #664d03; padding: 16px; border-radius: 6px; text-align: center; font-weight: bold;">Eşleşen aktif fason iş emri bulunamadı.</div>`;
+            document.getElementById("btnTopluKaydet").classList.add("d-none");
+        } else {
+            document.getElementById("btnTopluKaydet").classList.remove("d-none");
+            data.forEach((is, index) => {
+                try {
+                    let rowId = is.id ? formatVeri(is.id) : index.toString();
+                    let uretimDurumu = is.firmadurumu ? formatVeri(is.firmadurumu) : "Bekliyor";
+                    if (uretimDurumu.includes("-") || uretimDurumu === "" || uretimDurumu === "undefined") uretimDurumu = "Bekliyor";
+                    
+                    let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
+                    let miktar = is.uretilendir_miktar ? parseInt(formatVeri(is.uretilendir_miktar)) : 0;
+                    if(isNaN(miktar)) miktar = 0;
+
+                    html += `
+                    <div class="card p-3" data-id="${rowId}">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                            <div class="mb-2">
+                                <span class="badge ${badgeClass}" id="badge_${rowId}">${uretimDurumu}</span>
+                                <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">${formatVeri(is.strno)}</h5>
+                                <small class="text-muted">Sipariş No: <b>${formatVeri(is.tanim)}</b> | Parça No: <b>${formatVeri(is.sprsno)}</b></small>
                             </div>
-                            
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
-                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${formatVeri(is.sptp)}</div></div>
-                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${formatVeri(is.sprstarihi)}</div></div>
-                                <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Detay / Teslim:</b> <span style="color: #dc3545; font-weight: bold;">${formatVeri(is.teslimtarihi)}</span></div></div>
+                            <div style="text-align: right;">
+                                <span class="text-muted" style="display: block; font-size: 12px; font-weight: bold;">Kalan Bakiye</span>
+                                <span class="fw-bold text-primary" style="font-size: 24px;">${formatVeri(is.ob)}</span>
                             </div>
-
+                        </div>
+                        
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
+                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${formatVeri(is.sptp)}</div></div>
+                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${formatVeri(is.sprstarihi)}</div></div>
