@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yan Sanayi İş Takip Portalı</title>
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .badge-bekliyor { background-color: #6c757d; }
+        .badge-uretimde { background-color: #0dcaf0; color: #000; }
+        .badge-bitti { background-color: #198754; }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold text-primary">Yan Sanayi İş Takip Portalı</h2>
+        <p class="text-muted">Lütfen firmanızı seçerek güncel işlerinizi listeleyin.</p>
+    </div>
+
+    <!-- Giriş Ekranı -->
+    <div id="loginSection" class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card p-4">
+                <label class="form-label fw-bold">Tedarikçi Adınızı Yazın/Seçin:</label>
+                <input type="text" id="firmaAdi" class="form-control mb-3" placeholder="Örn: Özdemir Torna">
+                <button onclick="isleriListele()" class="btn btn-primary w-100 fw-bold">İşlerimi Listele</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- İş Listesi Ekranı -->
+    <div id="listSection" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 id="welcomeText" class="fw-bold"></h4>
+            <button onclick="location.reload()" class="btn btn-sm btn-secondary">Çıkış Yap</button>
+        </div>
+        <div id="isKartlari"></div>
+    </div>
+</div>
+
+<script>
+    // ÖNEMLİ: 2. Adımdaki Google Web Uygulaması Linkini buraya yapıştırın
+    const API_URL = "https://script.google.com/macros/s/AKfycbxwxMEVN1GogYK1lPovawClkTERGyqY6Y3QTg8efNW8jsq6AUy_Dgz6ZvcsCv-ue0dSlA/exec"; 
+
+    let aktifFirma = "";
+
+    function isleriListele() {
+        aktifFirma = document.getElementById("firmaAdi").value.trim();
+        if(!aktifFirma) return alert("Lütfen firma adınızı girin.");
+        
+        document.getElementById("loginSection").classList.add("d-none");
+        document.getElementById("listSection").classList.remove("d-none");
+        document.getElementById("isKartlari").innerHTML = `<div class="text-center my-5"><div class="spinner-border text-primary"></div><p class="mt-2">İşleriniz yükleniyor...</p></div>`;
+
+        fetch(`${API_URL}?action=read&firma=${encodeURIComponent(aktifFirma)}`)
+        .then(res => res.json())
+        .then(data => {
+            let html = "";
+            if(data.length === 0) {
+                html = `<div class="alert alert-warning text-center">Şu an üzerinize kayıtlı aktif bir fason iş emri bulunamadı.</div>`;
+            } else {
+                data.forEach(is => {
+                    let badgeClass = is.durum === 'Bitti' ? 'badge-bitti' : (is.durum === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
+                    html += `
+                    <div class="card p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge ${badgeClass} mb-2">${is.durum}</span>
+                                <h5 class="fw-bold mb-1">${is.tanim}</h5>
+                                <small class="text-muted">Sipariş No: <b>${is.sprsNo}</b> | Termin: <b>${is.tarih}</b></small>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted d-block small">ERP Bakiyesi</span>
+                                <span class="fs-4 fw-bold text-dark">${is.bakiye} Adet</span>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <select id="durum_${is.id}" class="form-select form-select-sm">
+                                    <option value="Bekliyor" ${is.durum=='Bekliyor'?'selected':''}>Bekliyor</option>
+                                    <option value="Üretimde" ${is.durum=='Üretimde'?'selected':''}>Üretimde</option>
+                                    <option value="Bitti" ${is.durum=='Bitti'?'selected':''}>Bitti / Sevk Edildi</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="number" id="adet_${is.id}" class="form-control form-control-sm" placeholder="Üretilen Adet" value="${is.uretilen}">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <input type="text" id="not_${is.id}" class="form-control form-control-sm" placeholder="Varsa notunuz (Fire vb.)" value="${is.not}">
+                            </div>
+                            <div class="col-12 col-md-2">
+                                <button onclick="guncelle(${is.id})" class="btn btn-sm btn-success w-100 fw-bold">Kaydet</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+            document.getElementById("welcomeText").innerText = aktifFirma;
+            document.getElementById("isKartlari").innerHTML = html;
+        });
+    }
+
+    function guncelle(rowId) {
+        const durum = document.getElementById(`durum_${rowId}`).value;
+        const uretilen = document.getElementById(`adet_${rowId}`).value;
+        const not = document.getElementById(`not_${rowId}`).value;
+
+        fetch(`${API_URL}?action=update&rowId=${rowId}&durum=${encodeURIComponent(durum)}&uretilen=${encodeURIComponent(uretilen)}&not=${encodeURIComponent(not)}`)
+        .then(res => res.text())
+        .then(response => {
+            if(response === "BAŞARILI") {
+                alert("Güncellemeniz başarıyla merkeze iletildi!");
+                isleriListele();
+            } else {
+                alert("Bir hata oluştu, lütfen tekrar deneyin.");
+            }
+        });
+    }
+</script>
+</body>
+</html>
