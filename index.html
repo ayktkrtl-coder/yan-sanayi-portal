@@ -81,8 +81,8 @@
 </div>
 
 <script>
-    // En son ürettiğiniz ve çalışan Google Apps Script linkiniz
-    const API_URL = "https://script.google.com/macros/s/AKfycbzvsf9cQc1LzY02xV4pGT30tLhgLXhl257rQNnSFpTF3T-UAPjLCAayfytS9nk293113w/exec"; 
+    // Tarayıcı güvenlik duvarını aşan JSONP uyumlu API URL'niz
+    const API_URL = "https://google.com"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -100,7 +100,6 @@
         }
     }
 
-    // ⚡ TARAYICI GÜVENLİK DUVARINI (CORS) YASAL OLARAK DELEN DİNAMİK YAPICI
     function isleriListele() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
         if(!aktifFirma) return alert("Lütfen tedarikçi adınızı girin.");
@@ -110,13 +109,13 @@
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("isKartlari").innerHTML = `<div class="text-center mb-4"><div class="spinner"></div><p>Güvenli bağlantı kuruluyor, işleriniz çekiliyor...</p></div>`;
 
-        // JSONP Köprüsü kuruyoruz: Dinamik bir görünmez script elementi açıyoruz
+        // JSONP Köprüsü: Güvenlik kilidini açar
         const script = document.createElement('script');
         script.src = `${API_URL}?action=read&firma=${encodeURIComponent(aktifFirma)}&callback=veriGeriDonusIsle`;
-        document.body.appendChild(script); // Bu satır tarayıcı engelini tamamen kırar
+        document.body.appendChild(script); 
     }
 
-    // Google veriyi getirdiğinde tetiklenecek ana merkez fonksiyonu
+    // Google veriyi getirdiğinde tetiklenecek ana fonksiyon (Boşluk hataları tamamen temizlendi)
     function veriGeriDonusIsle(data) {
         mevcutIsler = data;
         let html = "";
@@ -134,6 +133,7 @@
                     if (uretimDurumu.includes("-") || uretimDurumu === "" || uretimDurumu === "undefined") uretimDurumu = "Bekliyor";
                     
                     let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
+                    
                     let miktar = is.uretilendir_miktar ? parseInt(formatVeri(is.uretilendir_miktar)) : 0;
                     if(isNaN(miktar)) miktar = 0;
 
@@ -154,3 +154,6 @@
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
                             <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ${formatVeri(is.sptp)}</div></div>
                             <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ${formatVeri(is.sprstarihi)}</div></div>
+                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Detay / Teslim:</b> <span style="color: #dc3545; font-weight: bold;">${formatVeri(is.teslimtarihi)}</span></div></div>
+                        </div>
+
