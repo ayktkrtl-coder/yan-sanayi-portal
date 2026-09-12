@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yan Sanayi İş Takip Portalı</title>
-    <!-- Modern Tasarım Kütüphanesi Tam Adresi -->
     <link href="https://jsdelivr.net" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -28,7 +27,7 @@
         <div class="col-md-5">
             <div class="card p-4" style="border-left: none;">
                 <label class="form-label fw-bold">Tedarikçi Adınızı Girin:</label>
-                <input type="text" id="firmaAdi" class="form-control mb-3" placeholder="ERP'deki tam tedarikçi adınız">
+                <input type="text" id="firmaAdi" class="form-control mb-3" placeholder="Örn: EMO veya EMO MAKINA">
                 <button id="btnListele" class="btn btn-primary w-100 fw-bold">İşlerimi Listele</button>
             </div>
         </div>
@@ -53,13 +52,12 @@
 </div>
 
 <script>
-    // Sizin Google Apps Script Canlı Bağlantı Linkiniz
-    const API_URL = "https://google.com"; 
+    // Güncellenmiş Google Apps Script Web Uygulaması Linkiniz
+    const API_URL = "https://script.google.com/macros/s/AKfycbzvsf9cQc1LzY02xV4pGT30tLhgLXhl257rQNnSFpTF3T-UAPjLCAayfytS9nk293113w/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
 
-    // Butonları Güvenli Dinleyici Yapısıyla Bağlıyoruz
     document.getElementById("btnListele").addEventListener("click", isleriListele);
     document.getElementById("btnTopluKaydet").addEventListener("click", topluKaydet);
     document.getElementById("btnCikis").addEventListener("click", () => { location.reload(); });
@@ -81,7 +79,7 @@
             document.getElementById("totalCount").innerText = `Toplam Kalem Sayısı: ${data.length}`;
             
             if(data.length === 0) {
-                html = `<div class="alert alert-warning text-center fw-bold">Aktif fason iş emri bulunamadı. Lütfen firma adını ERP'dekiyle birebir aynı yazdığınızdan emin olun.</div>`;
+                html = `<div class="alert alert-warning text-center fw-bold">Eşleşen aktif fason iş emri bulunamadı.</div>`;
                 document.getElementById("btnTopluKaydet").classList.add("d-none");
             } else {
                 document.getElementById("btnTopluKaydet").classList.remove("d-none");
@@ -93,7 +91,7 @@
                             <div class="mb-2">
                                 <span class="badge ${badgeClass} mb-2" id="badge_${is.id}">${is.firmaDurumu}</span>
                                 <h5 class="fw-bold mb-1" style="color: #2c3e50;">${is.tanim}</h5>
-                                <small class="text-muted">Sipariş No: <b>${is.sprsNo}</b> | Satır No: <b>${is.strNo}</b> | 2. Kalem No: <b>${is.kalemNo}</b></small>
+                                <small class="text-muted">Sipariş No: <b>${is.sprsNo}</b> | Satır No: <b>${is.strNo}</b></small>
                             </div>
                             <div class="text-md-end mb-2">
                                 <span class="text-muted d-block small fw-bold">Kalan Bakiye</span>
@@ -103,7 +101,6 @@
                         
                         <div class="row my-2 g-2 text-dark">
                             <div class="col-6 col-sm-3"><div class="info-block"><b>Sipariş Tipi:</b> ${is.spTp}</div></div>
-                            <div class="col-6 col-sm-3"><div class="info-block"><b>İlgili No:</b> ${is.ilgiliNo || '-'}</div></div>
                             <div class="col-6 col-sm-3"><div class="info-block"><b>Sipariş Tarihi:</b> ${is.sprsTarihi}</div></div>
                             <div class="col-6 col-sm-3"><div class="info-block"><b>Söz Verilen Teslim:</b> <span class="text-danger fw-bold">${is.teslimTarihi}</span></div></div>
                         </div>
@@ -121,17 +118,17 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <label class="small fw-bold text-secondary mb-1">Üretilen Miktar</label>
-                                <input type="number" id="adet_${is.id}" class="form-control form-control-sm" placeholder="Miktar girin" value="${is.uretilenMiktar}">
+                                <input type="number" id="adet_${is.id}" class="form-control form-control-sm" value="${is.uretilenMiktar}">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="small fw-bold text-secondary mb-1">Yan Sanayi Notu / Açıklama</label>
-                                <input type="text" id="not_${is.id}" class="form-control form-control-sm" placeholder="Fire, gecikme vb. açıklamalar" value="${is.yanSanayiNotu}">
+                                <input type="text" id="not_${is.id}" class="form-control form-control-sm" value="${is.yanSanayiNotu}">
                             </div>
                         </div>
                     </div>`;
                 });
             }
-            document.getElementById("welcomeText").innerText = `Tedarikçi: ${aktifFirma}`;
+            document.getElementById("welcomeText").innerText = `Tedarikçi Arama: ${aktifFirma}`;
             document.getElementById("isKartlari").innerHTML = html;
         });
     }
@@ -175,3 +172,10 @@
             isleriListele();
         }).catch(err => {
             alert("Kayıt sırasında bir hata oluştu: " + err);
+            btnSave.disabled = false;
+            btnSave.innerText = "⚡ Tüm Listeyi Toplu Kaydet";
+        });
+    }
+</script>
+</body>
+</html>
