@@ -85,13 +85,20 @@
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
         document.getElementById("headerSection").classList.add("d-none");
+        document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İş Listesi";
         document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>Isleriniz yukleniyor...</p></div>';
 
+        // Eski script elementlerini temizle (Hafıza şişmesini önlemek için)
+        const oldScript = document.getElementById('jsonpScript');
+        if(oldScript) oldScript.remove();
+
         const script = document.createElement('script');
+        script.id = 'jsonpScript';
         script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
     }
 
+    // Google'dan gelen verileri yakalayıp listeleyen kritik fonksiyon
     function veriGeriDonusIsle(data) {
         mevcutIsler = data;
         var html = "";
@@ -137,33 +144,25 @@
                         '</div>' +
                         '<div style="flex:1;">' +
                             '<label style="font-size:12px; font-weight:bold; color:#555;">Uretilen Miktar</label>' +
-                            '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin:4px 0 0 0; padding:5px;" value="' + miktar + '">' +
+                            '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + miktar + '">' +
                         '</div>' +
                     '</div>' +
-                    '<div style="margin-top:10px;">' +
-                        '<label style="font-size:12px; font-weight:bold; color:#555;">Acıklama / Yan Sanayi Notu</label>' +
-                        '<input type="text" id="not_' + cardId + '" class="form-control" style="margin-top:4px; font-size:14px;" placeholder="Notunuzu buraya yazabilirsiniz..." value="' + notIcerigi + '">' +
+                    '<div style="margin-top:8px;">' +
+                        '<label style="font-size:12px; font-weight:bold; color:#555;">Yan Sanayi Notu</label>' +
+                        '<input type="text" id="not_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" placeholder="Notunuzu yazın..." value="' + notIcerigi + '">' +
                     '</div>' +
                 '</div>';
             });
         }
         document.getElementById("isKartlari").innerHTML = html;
-        document.getElementById("welcomeText").innerText = "Hos Geldiniz, " + aktifFirma;
     }
 
+    // Değiştirilen durumları Google Sheets'e gönderen fonksiyon
     function topluKaydet() {
-        let guncellenecekler = [];
+        if (mevcutIsler.length === 0) return alert("Kaydedilecek veri yok.");
+        
+        var guncellenecekler = [];
+        
         mevcutIsler.forEach(function(is) {
             var cardId = formatVeri(is.id);
-            var secilenDurum = document.getElementById("durum_" + cardId).value;
-            var girilenAdet = document.getElementById("adet_" + cardId).value;
-            var girilenNot = document.getElementById("not_" + cardId).value;
-            guncellenecekler.push({
-                id: cardId,
-                durum: secilenDurum,
-                adet: girilenAdet,
-                not: girilenNot
-            });
-        });
-
-        document.getElementById("btnTopluKaydet").innerText = "Kaydediliyor...";
+            var eDurum = document.getElementById("durum_" + cardId).value;
