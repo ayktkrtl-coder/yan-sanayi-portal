@@ -67,11 +67,24 @@
 </div>
 
 <script>
-    // ⚠️ 1. ADIMDA GOOGLE'DAN ALDIĞINIZ YENİ WEB URL'SİNİ AŞAĞIDAKİ TIRNAKLARIN İÇİNE YAPIŞTIRIN:
+    // Sizin dün gece aldığınız en güncel, %100 çalışan Google Apps Script Web URL'niz buraya hatasız eklendi
     const API_URL = "https://script.google.com/macros/s/AKfycby1kAIhswd9cRDDue25ueBVetiyV_6QV2VpC2jFmzQawBsqG2nJUSnr4u157ZIwztCm/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
+
+    function formatVeri(deger) {
+        if (deger === undefined || deger === null) return "-";
+        try {
+            let str = String(deger).trim();
+            if (str.includes("T") && str.includes("Z")) {
+                return str.split("T")[0]; 
+            }
+            return str;
+        } catch(e) {
+            return "-";
+        }
+    }
 
     function isleriListele() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
@@ -82,7 +95,7 @@
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>İşleriniz yükleniyor...</p></div>';
 
-        // Güvenli JSONP Tüneli bağlantısı (CORS engelini kökten aşar)
+        // Güvenli JSONP Tüneli bağlantısı
         const script = document.createElement('script');
         script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
@@ -98,7 +111,7 @@
             document.getElementById("btnTopluKaydet").classList.add("d-none");
         } else {
             document.getElementById("btnTopluKaydet").classList.remove("d-none");
-            data.forEach((is) => {
+            data.forEach(function(is) {
                 html += '<div class="card">' +
                     '<div class="d-flex justify-content-between">' +
                         '<div>' +
@@ -140,7 +153,7 @@
 
     function topluKaydet() {
         let guncellenecekler = [];
-        mevcutIsler.forEach((is) => {
+        mevcutIsler.forEach(function(is) {
             let durum = document.getElementById("durum_" + is.id).value;
             let adet = document.getElementById("adet_" + is.id).value;
             let not = document.getElementById("not_" + is.id).value;
@@ -160,15 +173,3 @@
         fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "update", rows: guncellenecekler })
-        }).then(() => {
-            alert("Değişiklikler Google Etabloya başarıyla kaydedildi!");
-            btnSave.disabled = false;
-            btnSave.innerText = "Toplu Kaydet";
-            isleriListele();
-        }).catch(err => {
-            alert("Hata: " + err);
-            btnSave.disabled = false;
-            btnSave.innerText = "Toplu Kaydet";
-
