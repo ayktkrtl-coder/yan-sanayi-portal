@@ -38,7 +38,7 @@
         <div class="card" style="max-width: 450px; margin: 0 auto;">
             <label style="font-weight:700; margin-bottom:8px; display:block;">Tedarikci Adinizi Girin:</label>
             <input type="text" id="firmaAdi" class="form-control" placeholder="Orn: EMO">
-            <button onclick="isleriListele()" id="btnListele" class="btn btn-primary">Islerimi Listele</button>
+            <button id="btnListele" class="btn btn-primary">Islerimi Listele</button>
         </div>
     </div>
 
@@ -50,7 +50,7 @@
                     <small style="color:#6c757d;" id="totalCount"></small>
                 </div>
                 <div class="d-flex gap-2">
-                    <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success">Toplu Kaydet</button>
+                    <button id="btnTopluKaydet" class="btn btn-success">Toplu Kaydet</button>
                     <button onclick="location.reload()" class="btn btn-danger">Cikis</button>
                 </div>
             </div>
@@ -60,109 +60,98 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz6YIHRRjwxlS8-KyKXqV99cftBKT3OKKVGYTV5KpTIl53PKH3bpatjdJucwUWNLmwT/exec"; 
+    // Tarayıcının global kapsamda fonksiyonları kesin bulması için window nesnesine bağlıyoruz
+    (function() {
+        const API_URL = "https://google.com"; 
+        let aktifFirma = "";
+        let mevcutIsler = [];
 
-    let aktifFirma = "";
-    let mevcutIsler = [];
+        function formatVeri(deger) {
+            if (deger === undefined || deger === null) return "-";
+            try {
+                var str = String(deger).trim();
+                if (str.includes("T") && str.includes("Z")) { return str.split("T")[0]; }
+                return str;
+            } catch(e) { return "-"; }
+        }
 
-    function formatVeri(deger) {
-        if (deger === undefined || deger === null) return "-";
-        try {
-            var str = String(deger).trim();
-            if (str.includes("T") && str.includes("Z")) {
-                return str.split("T")[0]; 
+        window.isleriListele = function() {
+            aktifFirma = document.getElementById("firmaAdi").value.trim();
+            if(!aktifFirma) return alert("Lutfen tedarikci adinizi girin.");
+            
+            document.getElementById("loginSection").classList.add("d-none");
+            document.getElementById("listSection").classList.remove("d-none");
+            document.getElementById("headerSection").classList.add("d-none");
+            document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
+            document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>Isleriniz yukleniyor...</p></div>';
+
+            const script = document.createElement('script');
+            script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
+            document.body.appendChild(script); 
+        };
+
+        window.veriGeriDonusIsle = function(data) {
+            mevcutIsler = data;
+            var html = "";
+            document.getElementById("totalCount").innerText = "Toplam Kalem Sayisi: " + data.length;
+            
+            if(!data || data.length === 0) {
+                html = '<div style="background-color:#fff3cd; padding:16px; border-radius:6px; text-align:center;">Aktif is emri bulunamadi.</div>';
+                document.getElementById("btnTopluKaydet").classList.add("d-none");
+            } else {
+                document.getElementById("btnTopluKaydet").classList.remove("d-none");
+                data.forEach(function(is) {
+                    var cardId = formatVeri(is.id);
+                    var fDurum = formatVeri(is.firmadurumu);
+                    var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
+                    var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
+
+                    html += '<div class="card">' +
+                        '<div class="d-flex justify-content-between">' +
+                            '<div>' +
+                                '<span class="badge" style="background-color: #27ae60;">' + fDurum + '</span>' +
+                                '<h5 style="margin:4px 0; font-weight:700; color:#2c3e50;">' + formatVeri(is.tanim) + '</h5>' +
+                                '<small style="color:#6c757d;">Siparis No: ' + formatVeri(is.sprsno) + ' | Satir No: ' + cardId + '</small>' +
+                            '</div>' +
+                            '<div style="text-align:right;">' +
+                                '<small style="color:#6c757d; display:block;">Bakiye</small>' +
+                                '<span style="font-size:20px; font-weight:bold; color:#0d6efd;">' + formatVeri(is.ob) + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div style="display:flex; gap:8px; margin:12px 0;">' +
+                            '<div style="flex:1;"><div class="info-block"><b>Sp Tp:</b> ' + formatVeri(is.sptp) + '</div></div>' +
+                            '<div style="flex:1;"><div class="info-block"><b>Sprs Tarihi:</b> ' + formatVeri(is.sprstarihi) + '</div></div>' +
+                            '<div style="flex:1;"><div class="info-block"><b>Teslim Tarihi:</b> ' + formatVeri(is.teslimtarihi) + '</div></div>' +
+                        '</div>' +
+                        '<div style="display:flex; gap:8px; align-items:flex-end; margin-top:12px; margin-bottom:12px;">' +
+                            '<div style="flex:1;">' +
+                                '<label style="font-size:12px; font-weight:bold; color:#555;">Firma Durumu</label>' +
+                                '<select id="durum_' + cardId + '" class="form-select" style="margin-top:4px;">' +
+                                    '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
+                                    '<option value="Uretimde" ' + (fDurum=='Uretimde'?'selected':'') + '>Uretimde</option>' +
+                                    '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div style="flex:1;">' +
+                                '<label style="font-size:12px; font-weight:bold; color:#555;">Uretilen Miktar</label>' +
+                                '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + miktar + '">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div style="margin-top:8px;">' +
+                            '<label style="font-size:12px; font-weight:bold; color:#555;">Yan Sanayi Notu</label>' +
+                            '<input type="text" id="not_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" placeholder="Not girin..." value="' + notIcerigi + '">' +
+                        '</div>' +
+                    '</div>';
+                });
             }
-            return str;
-        } catch(e) {
-            return "-";
-        }
-    }
+            document.getElementById("isKartlari").innerHTML = html;
+        };
 
-    function isleriListele() {
-        aktifFirma = document.getElementById("firmaAdi").value.trim();
-        if(!aktifFirma) return alert("Lutfen tedarikci adinizi girin.");
-        
-        document.getElementById("loginSection").classList.add("d-none");
-        document.getElementById("listSection").classList.remove("d-none");
-        document.getElementById("headerSection").classList.add("d-none");
-        document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İş Listesi";
-        document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>Isleriniz yukleniyor...</p></div>';
-
-        // Eski script elementlerini temizle (Hafıza şişmesini önlemek için)
-        const oldScript = document.getElementById('jsonpScript');
-        if(oldScript) oldScript.remove();
-
-        const script = document.createElement('script');
-        script.id = 'jsonpScript';
-        script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
-        document.body.appendChild(script); 
-    }
-
-    // Google'dan gelen verileri yakalayıp listeleyen kritik fonksiyon
-    function veriGeriDonusIsle(data) {
-        mevcutIsler = data;
-        var html = "";
-        document.getElementById("totalCount").innerText = "Toplam Kalem Sayisi: " + data.length;
-        
-        if(!data || data.length === 0) {
-            html = '<div style="background-color:#fff3cd; padding:16px; border-radius:6px; text-align:center;">Aktif is emri bulunamadi.</div>';
-            document.getElementById("btnTopluKaydet").classList.add("d-none");
-        } else {
-            document.getElementById("btnTopluKaydet").classList.remove("d-none");
-            data.forEach(function(is) {
+        window.topluKaydet = function() {
+            if (mevcutIsler.length === 0) return alert("Kaydedilecek veri yok.");
+            let guncellenecekler = [];
+            
+            mevcutIsler.forEach(function(is) {
                 var cardId = formatVeri(is.id);
-                var fDurum = formatVeri(is.firmadurumu);
-                var miktar = is.uretilendir_miktar ? parseInt(formatVeri(is.uretilendir_miktar)) : 0;
-                var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
-                if(isNaN(miktar)) miktar = 0;
-
-                html += '<div class="card">' +
-                    '<div class="d-flex justify-content-between">' +
-                        '<div>' +
-                            '<span class="badge" style="background-color: #27ae60;">' + fDurum + '</span>' +
-                            '<h5 style="margin:4px 0; font-weight:700; color:#2c3e50;">' + formatVeri(is.tanim) + '</h5>' +
-                            '<small style="color:#6c757d;">Siparis No: ' + formatVeri(is.sprsno) + ' | Satir No: ' + cardId + '</small>' +
-                        '</div>' +
-                        '<div style="text-align:right;">' +
-                            '<small style="color:#6c757d; display:block;">Bakiye</small>' +
-                            '<span style="font-size:20px; font-weight:bold; color:#0d6efd;">' + formatVeri(is.ob) + '</span>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div style="display:flex; gap:8px; margin:12px 0;">' +
-                        '<div style="flex:1;"><div class="info-block"><b>Sp Tp:</b> ' + formatVeri(is.sptp) + '</div></div>' +
-                        '<div style="flex:1;"><div class="info-block"><b>Sprs Tarihi:</b> ' + formatVeri(is.sprstarihi) + '</div></div>' +
-                        '<div style="flex:1;"><div class="info-block"><b>Teslim Tarihi:</b> ' + formatVeri(is.teslimtarihi) + '</div></div>' +
-                    '</div>' +
-                    '<div style="display:flex; gap:8px; align-items:flex-end; margin-top:12px; margin-bottom:12px;">' +
-                        '<div style="flex:1;">' +
-                            '<label style="font-size:12px; font-weight:bold; color:#555;">Firma Durumu</label>' +
-                            '<select id="durum_' + cardId + '" class="form-select" style="margin-top:4px;">' +
-                                '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
-                                '<option value="Uretimde" ' + (fDurum=='Uretimde'?'selected':'') + '>Uretimde</option>' +
-                                '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
-                            '</select>' +
-                        '</div>' +
-                        '<div style="flex:1;">' +
-                            '<label style="font-size:12px; font-weight:bold; color:#555;">Uretilen Miktar</label>' +
-                            '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + miktar + '">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div style="margin-top:8px;">' +
-                        '<label style="font-size:12px; font-weight:bold; color:#555;">Yan Sanayi Notu</label>' +
-                        '<input type="text" id="not_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" placeholder="Notunuzu yazın..." value="' + notIcerigi + '">' +
-                    '</div>' +
-                '</div>';
-            });
-        }
-        document.getElementById("isKartlari").innerHTML = html;
-    }
-
-    // Değiştirilen durumları Google Sheets'e gönderen fonksiyon
-    function topluKaydet() {
-        if (mevcutIsler.length === 0) return alert("Kaydedilecek veri yok.");
-        
-        var guncellenecekler = [];
-        
-        mevcutIsler.forEach(function(is) {
-            var cardId = formatVeri(is.id);
-            var eDurum = document.getElementById("durum_" + cardId).value;
+                guncellenecekler.push({
+                    id: cardId,
