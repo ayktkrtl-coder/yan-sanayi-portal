@@ -60,7 +60,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycby1kAIhswd9cRDDue25ueBVetiyV_6QV2VpC2jFmzQawBsqG2nJUSnr4u157ZIwztCm/exec"; 
+    const API_URL = "https://google.com"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -87,6 +87,7 @@
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>Isleriniz yukleniyor...</p></div>';
 
+        // JSONP Yapısı kullanarak Google'dan veriyi çekiyoruz
         const script = document.createElement('script');
         script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
@@ -136,47 +137,45 @@
                         '<div style="flex:1;">' +
                             '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin:0;" value="' + miktar + '">' +
                         '</div>' +
-                        '<div style="flex:2;">' +
-                            '<input type="text" id="not_' + cardId + '" class="form-control" style="margin:0;" value="' + formatVeri(is.yansanayinotu) + '" placeholder="Not ekleyin">' +
-                        '</div>' +
                     '</div>' +
                 '</div>';
             });
         }
-        document.getElementById("welcomeText").innerText = "Tedarikci: " + aktifFirma;
         document.getElementById("isKartlari").innerHTML = html;
+        document.getElementById("welcomeText").innerText = "Hos Geldiniz, " + aktifFirma;
     }
 
     function topluKaydet() {
-        var guncellenecekler = [];
+        let guncellenecekler = [];
         mevcutIsler.forEach(function(is) {
             var cardId = formatVeri(is.id);
-            var durum = document.getElementById("durum_" + cardId).value;
-            var adet = document.getElementById("adet_" + cardId).value;
-            var not = document.getElementById("not_" + cardId).value;
-            
+            var secilenDurum = document.getElementById("durum_" + cardId).value;
+            var girilenAdet = document.getElementById("adet_" + cardId).value;
             guncellenecekler.push({
                 id: cardId,
-                firmaDurumu: durum,
-                uretilenMiktar: adet,
-                yanSanayiNotu: not
+                durum: secilenDurum,
+                adet: girilenAdet
             });
         });
 
-        const btnSave = document.getElementById("btnTopluKaydet");
-        btnSave.disabled = true;
-        btnSave.innerText = "Kaydediliyor...";
+        document.getElementById("btnTopluKaydet").innerText = "Kaydediliyor...";
+        document.getElementById("btnTopluKaydet").disabled = true;
 
-        fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "update", rows: guncellenecekler })
-        }).then(function() {
-            alert("Degisiklikler Google Etabloya basariyla kaydedildi!");
-            btnSave.disabled = false;
-            btnSave.innerText = "Toplu Kaydet";
-            isleriListele();
-        }).catch(function(err) {
-            alert("Hata: " + err);
-            btnSave.disabled = false;
+        // Güncellenen verileri API_URL üzerinden arka plana (Google Sheets) push ediyoruz
+        const url = API_URL + "?action=update&data=" + encodeURIComponent(JSON.stringify(guncellenecekler));
+        
+        fetch(url)
+        .then(response => response.text())
+        .then(text => {
+            alert("Basariyla Kaydedildi!");
+            location.reload();
+        })
+        .catch(err => {
+            alert("Hata olustu, tekrar deneyin.");
+            document.getElementById("btnTopluKaydet").innerText = "Toplu Kaydet";
+            document.getElementById("btnTopluKaydet").disabled = false;
+        });
+    }
+</script>
+</body>
+</html>
