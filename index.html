@@ -60,7 +60,8 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyMGvyLPJWcDzV-xvEmcR6xvxcFrwh5dCYLpw14MD1RAZPYqg5cvvHLAzmg0rVxihkD/exec"; 
+    // ⚠️ BURAYA 1. ADIMDA ALDIĞINIZ YENİ APPS SCRIPT NEW DEPLOYMENT LİNKİNİ YAPIŞTIRIN
+    const API_URL = "https://script.google.com/macros/s/AKfycbxCOkn96Mm0K9tA0ZksiUihgFMFVHSmtEgMyHNnYbVWAk2NPumS4cb1WDCUstrF0vDc/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -87,7 +88,6 @@
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>Isleriniz yukleniyor...</p></div>';
 
-        // JSONP Yapısı kullanarak Google'dan veriyi çekiyoruz
         const script = document.createElement('script');
         script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
@@ -107,36 +107,43 @@
                 var cardId = formatVeri(is.id);
                 var fDurum = formatVeri(is.firmadurumu);
                 var miktar = is.uretilendir_miktar ? parseInt(formatVeri(is.uretilendir_miktar)) : 0;
+                var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
                 if(isNaN(miktar)) miktar = 0;
 
                 html += '<div class="card">' +
                     '<div class="d-flex justify-content-between">' +
                         '<div>' +
-                            '<span class="badge">' + fDurum + '</span>' +
-                            '<h5 style="margin:4px 0; font-weight:700;">' + formatVeri(is.tanim) + '</h5>' +
-                            '<small style="color:#6c757d;">Siparis No: ' + formatVeri(is.sprsno) + ' | Satir: ' + formatVeri(is.strno) + '</small>' +
+                            '<span class="badge" style="background-color: #27ae60;">' + fDurum + '</span>' +
+                            '<h5 style="margin:4px 0; font-weight:700; color:#2c3e50;">' + formatVeri(is.tanim) + '</h5>' +
+                            '<small style="color:#6c757d;">Siparis No: ' + formatVeri(is.sprsno) + ' | Satir No: ' + cardId + '</small>' +
                         '</div>' +
                         '<div style="text-align:right;">' +
-                            '<small style="color:#6c757d; display:block;">Bakiye</small>' +
+                            '<small style="color:#6c757d; display:block;">Bakiye OB</small>' +
                             '<span style="font-size:20px; font-weight:bold; color:#0d6efd;">' + formatVeri(is.ob) + '</span>' +
                         '</div>' +
                     '</div>' +
                     '<div style="display:flex; gap:8px; margin:12px 0;">' +
-                        '<div style="flex:1;"><div class="info-block"><b>Tip:</b> ' + formatVeri(is.sptp) + '</div></div>' +
-                        '<div style="flex:1;"><div class="info-block"><b>Sip.Tarihi:</b> ' + formatVeri(is.sprstarihi) + '</div></div>' +
-                        '<div style="flex:1;"><div class="info-block"><b>Teslim:</b> ' + formatVeri(is.teslimtarihi) + '</div></div>' +
+                        '<div style="flex:1;"><div class="info-block"><b>Sp Tp:</b> ' + formatVeri(is.sptp) + '</div></div>' +
+                        '<div style="flex:1;"><div class="info-block"><b>Sprs Tarihi:</b> ' + formatVeri(is.sprstarihi) + '</div></div>' +
+                        '<div style="flex:1;"><div class="info-block"><b>Teslim Tarihi:</b> ' + formatVeri(is.teslimtarihi) + '</div></div>' +
                     '</div>' +
-                    '<div style="display:flex; gap:8px; align-items:flex-end; margin-top:12px;">' +
+                    '<div style="display:flex; gap:8px; align-items:flex-end; margin-top:12px; margin-bottom:12px;">' +
                         '<div style="flex:1;">' +
-                            '<select id="durum_' + cardId + '" class="form-select">' +
+                            '<label style="font-size:12px; font-weight:bold; color:#555;">Firma Durumu</label>' +
+                            '<select id="durum_' + cardId + '" class="form-select" style="margin-top:4px;">' +
                                 '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
                                 '<option value="Uretimde" ' + (fDurum=='Uretimde'?'selected':'') + '>Uretimde</option>' +
                                 '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
                             '</select>' +
                         '</div>' +
                         '<div style="flex:1;">' +
-                            '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin:0;" value="' + miktar + '">' +
+                            '<label style="font-size:12px; font-weight:bold; color:#555;">Uretilen Miktar</label>' +
+                            '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin:4px 0 0 0; padding:5px;" value="' + miktar + '">' +
                         '</div>' +
+                    '</div>' +
+                    '<div style="margin-top:10px;">' +
+                        '<label style="font-size:12px; font-weight:bold; color:#555;">Acıklama / Yan Sanayi Notu</label>' +
+                        '<input type="text" id="not_' + cardId + '" class="form-control" style="margin-top:4px; font-size:14px;" placeholder="Notunuzu buraya yazabilirsiniz..." value="' + notIcerigi + '">' +
                     '</div>' +
                 '</div>';
             });
@@ -151,31 +158,12 @@
             var cardId = formatVeri(is.id);
             var secilenDurum = document.getElementById("durum_" + cardId).value;
             var girilenAdet = document.getElementById("adet_" + cardId).value;
+            var girilenNot = document.getElementById("not_" + cardId).value;
             guncellenecekler.push({
                 id: cardId,
                 durum: secilenDurum,
-                adet: girilenAdet
+                adet: girilenAdet,
+                not: girilenNot
             });
         });
 
-        document.getElementById("btnTopluKaydet").innerText = "Kaydediliyor...";
-        document.getElementById("btnTopluKaydet").disabled = true;
-
-        // Güncellenen verileri API_URL üzerinden arka plana (Google Sheets) push ediyoruz
-        const url = API_URL + "?action=update&data=" + encodeURIComponent(JSON.stringify(guncellenecekler));
-        
-        fetch(url)
-        .then(response => response.text())
-        .then(text => {
-            alert("Basariyla Kaydedildi!");
-            location.reload();
-        })
-        .catch(err => {
-            alert("Hata olustu, tekrar deneyin.");
-            document.getElementById("btnTopluKaydet").innerText = "Toplu Kaydet";
-            document.getElementById("btnTopluKaydet").disabled = false;
-        });
-    }
-</script>
-</body>
-</html>
