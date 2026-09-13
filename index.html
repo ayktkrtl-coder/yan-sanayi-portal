@@ -13,30 +13,18 @@
         .fw-bold { font-weight: 700; }
         .text-primary { color: #0d6efd; }
         .text-muted { color: #6c757d; }
-        .row { display: flex; flex-wrap: wrap; margin-right: -12px; margin-left: -12px; }
-        .justify-content-center { justify-content: center; }
-        .card { position: relative; display: flex; flex-direction: column; min-width: 0; background-color: #fff; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; padding: 24px; border-left: 5px solid #3498db; }
-        .form-label { margin-bottom: 8px; display: inline-block; }
-        .form-control { display: block; width: 100%; padding: 6px 12px; font-size: 16px; font-weight: 400; line-height: 1.5; color: #212529; background-color: #fff; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 16px; }
-        .btn { display: inline-block; font-weight: 700; line-height: 1.5; color: #212529; text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; padding: 8px 16px; font-size: 16px; border-radius: 6px; border: 1px solid transparent; }
-        .btn-primary { color: #fff; background-color: #0d6efd; border-color: #0d6efd; }
-        .btn-primary:hover { background-color: #0b5ed7; border-color: #0a58ca; }
-        .btn-success { color: #fff; background-color: #198754; border-color: #198754; }
-        .btn-danger { color: #fff; background-color: #dc3545; border-color: #dc3545; }
-        .w-100 { width: 100%!important; }
+        .card { background-color: #fff; border: none; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; padding: 24px; border-left: 5px solid #3498db; }
+        .form-control { display: block; width: 100%; padding: 6px 12px; font-size: 16px; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 16px; }
+        .btn { display: inline-block; font-weight: 700; line-height: 1.5; color: #fff; text-align: center; cursor: pointer; padding: 8px 16px; font-size: 16px; border-radius: 6px; border: 1px solid transparent; width: 100%; }
+        .btn-primary { background-color: #0d6efd; border-color: #0d6efd; }
+        .btn-success { background-color: #198754; border-color: #198754; width: auto; }
+        .btn-danger { background-color: #dc3545; border-color: #dc3545; width: auto; }
         .d-none { display: none!important; }
         .d-flex { display: flex!important; }
         .justify-content-between { justify-content: space-between!important; }
         .align-items-center { align-items: center!important; }
-        .flex-wrap { flex-wrap: wrap!important; }
         .gap-2 { gap: 8px!important; }
-        .m-0 { margin: 0!important; }
-        .mt-4 { margin-top: 16px!important; }
-        .p-3 { padding: 16px!important; }
-        .badge { display: inline-block; padding: 6px 10px; font-size: 12px; font-weight: 700; line-height: 1; border-radius: 12px; margin-bottom: 8px; }
-        .badge-bekliyor { background-color: #6c757d; color: white; }
-        .badge-uretimde { background-color: #0dcaf0; color: #000; }
-        .badge-bitti { background-color: #198754; color: white; }
+        .badge { display: inline-block; padding: 6px 10px; font-size: 12px; font-weight: 700; border-radius: 12px; margin-bottom: 8px; color: white; background-color: #6c757d; }
         .info-block { background: #f8f9fa; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 5px; color: #212529; }
         .sticky-top-panel { position: sticky; top: 0; background: rgba(244, 246, 249, 0.95); z-index: 1000; padding: 15px 0; border-bottom: 1px solid #e2e8f0; }
         .form-select { display: block; width: 100%; padding: 4px 8px; font-size: 14px; color: #212529; background-color: #fff; border: 1px solid #ced4da; border-radius: 4px; }
@@ -48,57 +36,42 @@
 <div class="container">
     <div class="text-center mb-4" id="headerSection">
         <h2 class="fw-bold text-primary">Yan Sanayi İş Takip Portalı</h2>
-        <p class="text-muted">Güncel fason siparişlerinizi görüntüleyin og durum bildirimi yapın.</p>
+        <p class="text-muted">Güncel fason siparişlerinizi görüntüleyin ve durum bildirimi yapın.</p>
     </div>
 
     <!-- Giriş Ekranı -->
-    <div id="loginSection" class="row justify-content-center">
-        <div style="width: 100%; max-width: 450px;">
-            <div class="card" style="border-left: none;">
-                <label class="form-label fw-bold">Tedarikçi Adınızı Girin:</label>
-                <input type="text" id="firmaAdi" class="form-control" placeholder="Örn: EMO veya EMO MAKINA">
-                <button onclick="isleriListele()" id="btnListele" class="btn btn-primary w-100">İşlerimi Listele</button>
-            </div>
+    <div id="loginSection">
+        <div class="card" style="max-width: 450px; margin: 0 auto;">
+            <label class="fw-bold" style="margin-bottom:8px; display:block;">Tedarikçi Adınızı Girin:</label>
+            <input type="text" id="firmaAdi" class="form-control" placeholder="Örn: EMO">
+            <button onclick="isleriListele()" id="btnListele" class="btn btn-primary">İşlerimi Listele</button>
         </div>
     </div>
 
     <!-- İş Listesi Üst Sabit Panel -->
     <div id="listSection" class="d-none">
         <div class="sticky-top-panel">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h4 id="welcomeText" class="fw-bold m-0" style="color: #212529;"></h4>
+                    <h4 id="welcomeText" class="fw-bold" style="margin:0; color:#212529;"></h4>
                     <small class="text-muted" id="totalCount"></small>
                 </div>
                 <div class="d-flex gap-2">
-                    <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success fw-bold">⚡ Tüm Listeyi Toplu Kaydet</button>
-                    <button onclick="location.reload()" class="btn btn-danger fw-bold">Çıkış Yap</button>
+                    <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success">Toplu Kaydet</button>
+                    <button onclick="location.reload()" class="btn btn-danger">Çıkış</button>
                 </div>
             </div>
         </div>
-        <div id="isKartlari" class="mt-4"></div>
+        <div id="isKartlari" style="margin-top:16px;"></div>
     </div>
 </div>
 
 <script>
-    // Tarayıcı güvenlik engelini (CORS) yasal olarak aşan canlı API linkiniz
-    const API_URL = "https://script.google.com/macros/s/AKfycbzvsf9cQc1LzY02xV4pGT30tLhgLXhl257rQNnSFpTF3T-UAPjLCAayfytS9nk293113w/exec"; 
+    // Canlı Google Apps Script API Linkiniz
+    const API_URL = "https://google.com"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
-
-    function formatVeri(deger) {
-        if (deger === undefined || deger === null) return "-";
-        try {
-            let str = String(deger).trim();
-            if (str.includes("T") && str.includes("Z")) {
-                return str.split("T")[0]; 
-            }
-            return str;
-        } catch(e) {
-            return "-";
-        }
-    }
 
     function isleriListele() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
@@ -107,9 +80,9 @@
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
         document.getElementById("headerSection").classList.add("d-none");
-        document.getElementById("isKartlari").innerHTML = `<div class="text-center mb-4"><div class="spinner"></div><p>Güvenli bağlantı kuruluyor, işleriniz çekiliyor...</p></div>`;
+        document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>İşleriniz yükleniyor...</p></div>';
 
-        // JSONP Köprüsü: Tarayıcı engelini tamamen deler
+        // Güvenli JSONP Tüneli bağlantısı
         const script = document.createElement('script');
         script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
@@ -121,37 +94,80 @@
         document.getElementById("totalCount").innerText = "Toplam Kalem Sayısı: " + data.length;
         
         if(!data || data.length === 0) {
-            html = `<div style="background-color: #fff3cd; color: #664d03; padding: 16px; border-radius: 6px; text-align: center; font-weight: bold;">Eşleşen aktif fason iş emri bulunamadı.</div>`;
+            html = '<div style="background-color:#fff3cd; padding:16px; border-radius:6px; text-align:center;">Aktif iş emri bulunamadı.</div>';
             document.getElementById("btnTopluKaydet").classList.add("d-none");
         } else {
             document.getElementById("btnTopluKaydet").classList.remove("d-none");
-            data.forEach((is, index) => {
-                try {
-                    let rowId = is.id ? formatVeri(is.id) : index.toString();
-                    let uretimDurumu = is.firmadurumu ? formatVeri(is.firmadurumu) : "Bekliyor";
-                    if (uretimDurumu.includes("-") || uretimDurumu === "" || uretimDurumu === "undefined") uretimDurumu = "Bekliyor";
-                    
-                    let badgeClass = uretimDurumu === 'Bitti' ? 'badge-bitti' : (uretimDurumu === 'Üretimde' ? 'badge-uretimde' : 'badge-bekliyor');
-                    
-                    // Önceki kilitlenmeye sebep olan boşluk hatası tamamen ortadan kaldırıldı
-                    let miktar = is.uretilendir_miktar ? parseInt(formatVeri(is.uretilendir_miktar)) : 0;
-                    if(isNaN(miktar)) miktar = 0;
+            data.forEach((is) => {
+                html += '<div class="card">' +
+                    '<div class="d-flex justify-content-between">' +
+                        '<div>' +
+                            '<span class="badge">' + (is.firmadurumu || "Bekliyor") + '</span>' +
+                            '<h5 class="fw-bold" style="margin:4px 0;">' + (is.tanim || "-") + '</h5>' +
+                            '<small class="text-muted">Sipariş No: ' + (is.sprsno || "-") + ' | Satır: ' + (is.strno || "-") + '</small>' +
+                        '</div>' +
+                        '<div style="text-align:right;">' +
+                            '<small class="text-muted" style="display:block;">Bakiye</small>' +
+                            '<span class="text-primary" style="font-size:20px; font-weight:bold;">' + (is.ob || "0") + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="display:flex; gap:8px; margin:12px 0;">' +
+                        '<div style="flex:1;"><div class="info-block"><b>Tip:</b> ' + (is.sptp || "-") + '</div></div>' +
+                        '<div style="flex:1;"><div class="info-block"><b>Sip.Tarihi:</b> ' + (is.sprstarihi || "-") + '</div></div>' +
+                        '<div style="flex:1;"><div class="info-block"><b>Teslim:</b> ' + (is.teslimtarihi || "-") + '</div></div>' +
+                    '</div>' +
+                    '<div style="display:flex; gap:8px; align-items:flex-end; margin-top:12px;">' +
+                        '<div style="flex:1;">' +
+                            '<select id="durum_' + is.id + '" class="form-select">' +
+                                '<option value="Bekliyor" ' + (is.firmadurumu=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
+                                '<option value="Üretimde" ' + (is.firmadurumu=='Üretimde'?'selected':'') + '>Üretimde</option>' +
+                                '<option value="Bitti" ' + (is.firmadurumu=='Bitti'?'selected':'') + '>Bitti</option>' +
+                            '</select>' +
+                        '</div>' +
+                        '<div style="flex:1;">' +
+                            '<input type="number" id="adet_' + is.id + '" class="form-control" style="margin:0;" value="' + (is.uretilendir_miktar || 0) + '">' +
+                        '</div>' +
+                        '<div style="flex:2;">' +
+                            '<input type="text" id="not_' + is.id + '" class="form-control" style="margin:0;" value="' + (is.yansanayinotu || "") + '" placeholder="Not ekleyin">' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            });
+        }
+        document.getElementById("welcomeText").innerText = "Tedarikçi: " + aktifFirma;
+        document.getElementById("isKartlari").innerHTML = html;
+    }
 
-                    html += `
-                    <div class="card p-3" data-id="` + rowId + `">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <div class="mb-2">
-                                <span class="badge ` + badgeClass + `" id="badge_` + rowId + `">` + uretimDurumu + `</span>
-                                <h5 class="fw-bold m-0" style="color: #2c3e50; font-size: 18px; margin-bottom: 4px;">` + formatVeri(is.strno) + `</h5>
-                                <small class="text-muted">Sipariş No: <b>` + formatVeri(is.tanim) + `</b> | Parça No: <b>` + formatVeri(is.sprsno) + `</b></small>
-                            </div>
-                            <div style="text-align: right;">
-                                <span class="text-muted" style="display: block; font-size: 12px; font-weight: bold;">Kalan Bakiye</span>
-                                <span class="fw-bold text-primary" style="font-size: 24px;">` + formatVeri(is.ob) + `</span>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Sipariş Tipi:</b> ` + formatVeri(is.sptp) + `</div></div>
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Para Birimi:</b> ` + formatVeri(is.sprstarihi) + `</div></div>
-                            <div style="flex: 1; min-width: 150px;"><div class="info-block"><b>Detay / Teslim:</b> <span style="color: #dc3545; font-weight: bold;">` + formatVeri(is.teslimtarihi) + `</span></div></div>
+    function topluKaydet() {
+        let guncellenecekler = [];
+        mevcutIsler.forEach((is) => {
+            let durum = document.getElementById("durum_" + is.id).value;
+            let adet = document.getElementById("adet_" + is.id).value;
+            let not = document.getElementById("not_" + is.id).value;
+            
+            guncellenecekler.push({
+                id: is.id,
+                firmaDurumu: durum,
+                uretilenMiktar: adet,
+                yanSanayiNotu: not
+            });
+        });
+
+        const btnSave = document.getElementById("btnTopluKaydet");
+        btnSave.disabled = true;
+        btnSave.innerText = "⏳ Kaydediliyor...";
+
+        fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "update", rows: guncellenecekler })
+        }).then(() => {
+            alert("Değişiklikler Google Etabloya başarıyla kaydedildi!");
+            btnSave.disabled = false;
+            btnSave.innerText = "Toplu Kaydet";
+            isleriListele();
+        }).catch(err => {
+            alert("Hata: " + err);
+            btnSave.disabled = false;
+            btnSave.innerText = "Toplu Kaydet";
