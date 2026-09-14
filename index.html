@@ -88,6 +88,7 @@
         .btn-excel { background-color: #059669; }
         .btn-danger { background-color: var(--danger); }
         .btn-warning { background-color: var(--warning); color: #fff; }
+        .btn-info { background-color: #0284c7; }
         
         .btn-filter { 
             background-color: #f1f5f9; 
@@ -215,6 +216,7 @@
                     <small style="color:var(--text-muted); margin-left:8px;" id="totalCount"></small>
                 </div>
                 <div class="d-flex gap-2">
+                    <button onclick="supplierExcelModalAc()" class="btn btn-info"><i class="fa-solid fa-file-import"></i> Toplu Excel Yükle</button>
                     <button onclick="sifreModalAc()" class="btn btn-warning"><i class="fa-solid fa-key"></i> Şifre Değiştir</button>
                     <button onclick="excelIndir()" class="btn btn-excel"><i class="fa-solid fa-file-excel"></i> Excel İndir</button>
                     <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success"><i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet</button>
@@ -253,10 +255,30 @@
             </div>
         </div>
     </div>
+
+    <!-- Tedarikçi Toplu Excel Yükleme Modal -->
+    <div id="supplierExcelModal" class="modal d-none">
+        <div class="card" style="width:420px; padding:24px; border-left:none;">
+            <h4 style="margin:0 0 8px 0; color:var(--primary);"><i class="fa-solid fa-file-import"></i> Toplu Excel Güncelleme</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">
+                "Excel İndir" butonuyla indirdiğiniz dosyayı bilgisayarınızda düzenledikten sonra buraya yükleyin.
+            </p>
+            <div class="drop-zone" onclick="document.getElementById('supplierFileInput').click()">
+                <i class="fa-solid fa-file-excel" style="font-size:36px; color:#059669; margin-bottom:8px;"></i>
+                <h5 style="margin:0 0 4px 0;">Güncellenmiş Excel Dosyasını Bırakın</h5>
+                <small style="color:var(--text-muted);">Veya seçmek için tıklayın (.xlsx / .csv)</small>
+                <input type="file" id="supplierFileInput" class="d-none" accept=".xlsx, .xls, .csv" onchange="supplierExcelYukle(event)">
+            </div>
+            <div id="supplierUploadStatus" style="margin-top:12px; text-align:center; font-size:13px;"></div>
+            <div style="margin-top:16px; text-align:right;">
+                <button onclick="supplierExcelModalKapat()" class="btn btn-danger">Kapat</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxkPF4ft6kgIAATwcTS9zq_op4VceF1B6rh_RlyPGnnxNOGI4jcjNNEJ1usYsBmksGx/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbxnt2VQfTP876_iIvsb0qF9WBhIYeTgdMvOdvLdRqo51PtcsPTlVnbnsdOOirs97_2y/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -275,7 +297,6 @@
         return str === "" ? "-" : str;
     }
 
-    // Esnek Tarih Ayrıştırıcı (Hem Date objesi metinlerini hem ISO formatını çözer)
     function tarihAyristir(tarihStr) {
         if (!tarihStr || tarihStr === "-" || tarihStr === "undefined") return null;
         try {
@@ -353,6 +374,8 @@
 
     function sifreModalAc() { document.getElementById("sifreModal").classList.remove("d-none"); }
     function sifreModalKapat() { document.getElementById("sifreModal").classList.add("d-none"); }
+    function supplierExcelModalAc() { document.getElementById("supplierExcelModal").classList.remove("d-none"); }
+    function supplierExcelModalKapat() { document.getElementById("supplierExcelModal").classList.add("d-none"); }
 
     function sifreGuncelle() {
         var p1 = document.getElementById("newPass1").value.trim();
@@ -376,6 +399,71 @@
             girilenSifre = document.getElementById("newPass1").value.trim();
         } else {
             alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
+        }
+    }
+
+    // Tedarikçinin Düzenlediği Excel'i Yükleme ve İşleme
+    function supplierExcelYukle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusDiv = document.getElementById("supplierUploadStatus");
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Excel ayrıştırılıyor...</p>';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            let guncellenecekler = [];
+
+            jsonData.forEach(row => {
+                var satirNo = row["Satır No"] || row["Satir No"] || row["ID"];
+                if (satirNo) {
+                    var tTarih = row["Teslim Tarihi"] || row["Teslimtarihi"] || "";
+                    if (tTarih && String(tTarih).includes(".")) {
+                        var p = String(tTarih).split(".");
+                        if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
+                    }
+
+                    guncellenecekler.push({
+                        id: String(satirNo),
+                        durum: row["Firma Durumu"] || row["Durum"] || "Bekliyor",
+                        adet: row["Üretilen Miktar"] || row["Miktar"] || "0",
+                        teslimTarihi: tTarih,
+                        not: row["Yan Sanayi Notu"] || row["Not"] || ""
+                    });
+                }
+            });
+
+            if (guncellenecekler.length === 0) {
+                statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı.</div>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">' + guncellenecekler.length + ' kalem güncelleniyor...</p>';
+
+            scriptTemizle();
+            const payload = encodeURIComponent(JSON.stringify(guncellenecekler));
+            const script = document.createElement('script');
+            script.className = 'jsonp-temp';
+            script.src = API_URL + "?action=update&data=" + payload + "&callback=supplierUploadTamamlandi";
+            document.body.appendChild(script);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function supplierUploadTamamlandi(res) {
+        scriptTemizle();
+        if (res && res.status === "success") {
+            alert("Excel üzerindeki tüm güncellemeler başarıyla kaydedildi!");
+            supplierExcelModalKapat();
+            isleriListele(aktifFirma, girilenSifre);
+        } else {
+            alert("Güncelleme hatası: " + (res.message || "Hata"));
         }
     }
 
