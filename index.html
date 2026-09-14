@@ -279,7 +279,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz2MQuJcacJwgjfwYxJilL9jjjXeSGUEV6eaOlzxEPyut8xRUvchPe0BguuUD1iYC-K/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwNVTvu9ObzpsA2mAei-DNi6yY1TfNXB4eQUCbaHEFosCpsN-LiW-TSJTOy0c9_fgHC/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -302,19 +302,30 @@
         return str === "" ? "-" : str;
     }
 
+    // HER TÜRLÜ TARİH FORMATINI (YYYY-MM-DD, GG.AA.YYYY, ISO Vb.) HATASIZ ÇÖZEN FONKSİYON
     function tarihAyristir(tarihStr) {
-        if (!tarihStr || tarihStr === "-" || tarihStr === "undefined") return null;
+        if (!tarihStr || tarihStr === "-" || tarihStr === "undefined" || tarihStr === "") return null;
         try {
             var str = String(tarihStr).trim();
             if (str.includes("T")) str = str.split("T")[0];
-            
-            if (str.includes("-")) {
+
+            // YYYY-MM-DD formatı
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
                 var p = str.split("-");
-                if (p.length === 3) return new Date(p[0], p[1] - 1, p[2]);
+                return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
             }
-            if (str.includes(".")) {
-                var p2 = str.split(".");
-                if (p2.length === 3) return new Date(p2[2], p2[1] - 1, p2[0]);
+
+            // GG.AA.YYYY veya GG/AA/YYYY formatı
+            var sep = str.includes(".") ? "." : (str.includes("/") ? "/" : null);
+            if (sep) {
+                var p2 = str.split(sep);
+                if (p2.length === 3) {
+                    var gun = parseInt(p2[0]);
+                    var ay = parseInt(p2[1]) - 1;
+                    var yil = parseInt(p2[2]);
+                    if (yil < 100) yil += 2000;
+                    return new Date(yil, ay, gun);
+                }
             }
             
             var d = new Date(str);
@@ -332,10 +343,10 @@
         return gun + "." + ay + "." + yil;
     }
 
-    // Input type="date" için ISO formatına (YYYY-MM-DD) çeviren fonksiyon
+    // Input type="date" için kesin ISO formatı (YYYY-MM-DD) üreten fonksiyon
     function formatTarihInput(tarihStr) {
         var d = tarihAyristir(tarihStr);
-        if (!d) return "";
+        if (!d || isNaN(d.getTime())) return "";
         var gun = String(d.getDate()).padStart(2, '0');
         var ay = String(d.getMonth() + 1).padStart(2, '0');
         var yil = d.getFullYear();
@@ -610,7 +621,6 @@
                 var spTarihFormatli = formatTarihEkrana(is.sprstarihi);
                 var gecenGun = sprsGecenGunHesapla(is.sprstarihi);
                 
-                // Tarihi input type="date" yapısına uygun formata (YYYY-MM-DD) dönüştürüyoruz
                 var teslimTarihInput = formatTarihInput(is.teslimtarihi);
                 var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
 
