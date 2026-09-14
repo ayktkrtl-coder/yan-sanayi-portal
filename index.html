@@ -4,16 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yan Sanayi İş Takip Portalı</title>
+    <!-- Excel indirme kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { background-color: #f4f6f9; font-family: sans-serif; margin: 0; padding: 0; }
-        .container { max-width: 900px; margin: 0 auto; padding: 24px; }
-        .card { background-color: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; padding: 24px; border-left: 5px solid #3498db; }
-        .form-control { display: block; width: 100%; padding: 8px; font-size: 16px; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 16px; }
-        .btn { display: inline-block; font-weight: 700; padding: 10px 20px; font-size: 16px; border-radius: 6px; border: none; cursor: pointer; color: #fff; width: 100%; }
-        .btn-primary { background-color: #0d6efd; }
-        .btn-success { background-color: #198754; width: auto; }
-        .btn-danger { background-color: #dc3545; width: auto; }
+        .container { max-width: 950px; margin: 0 auto; padding: 24px; }
+        .card { background-color: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; padding: 24px; border-left: 5px solid #3498db; transition: border-color 0.3s ease; }
+        .card.modified { border-left-color: #f39c12 !important; background-color: #fffdf5; }
+        .form-control { display: block; width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 12px; }
+        .btn { display: inline-block; font-weight: 700; padding: 10px 16px; font-size: 14px; border-radius: 6px; border: none; cursor: pointer; color: #fff; }
+        .btn-primary { background-color: #0d6efd; width: 100%; }
+        .btn-success { background-color: #198754; }
+        .btn-excel { background-color: #107c41; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-filter { background-color: #e2e8f0; color: #333; padding: 6px 12px; font-size: 13px; font-weight: 600; border-radius: 20px; border: none; cursor: pointer; }
+        .btn-filter.active { background-color: #0d6efd; color: #fff; }
         .d-none { display: none !important; }
         .d-flex { display: flex !important; }
         .justify-content-between { justify-content: space-between !important; }
@@ -21,7 +27,7 @@
         .gap-2 { gap: 8px !important; }
         .badge { display: inline-block; padding: 6px 10px; font-size: 12px; font-weight: 700; border-radius: 12px; margin-bottom: 8px; color: white; background-color: #6c757d; }
         .info-block { background: #f8f9fa; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 5px; color: #212529; }
-        .sticky-top-panel { position: sticky; top: 0; background: rgba(244, 246, 249, 0.95); z-index: 1000; padding: 15px 0; border-bottom: 1px solid #e2e8f0; }
+        .sticky-top-panel { position: sticky; top: 0; background: rgba(244, 246, 249, 0.98); z-index: 1000; padding: 15px 0; border-bottom: 1px solid #e2e8f0; }
         .form-select { display: block; width: 100%; padding: 6px; font-size: 14px; border: 1px solid #ced4da; border-radius: 4px; }
         .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #0d6efd; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -44,26 +50,40 @@
 
     <div id="listSection" class="d-none">
         <div class="sticky-top-panel">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
                     <h4 id="welcomeText" style="margin:0; color:#212529; font-weight:700;"></h4>
                     <small style="color:#6c757d;" id="totalCount"></small>
                 </div>
                 <div class="d-flex gap-2">
+                    <button onclick="excelIndir()" class="btn btn-excel">Excel İndir</button>
                     <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success">Toplu Kaydet</button>
                     <button onclick="location.reload()" class="btn btn-danger">Çıkış</button>
                 </div>
             </div>
+            
+            <!-- Arama ve Filtreleme Alanı -->
+            <div class="d-flex justify-content-between align-items-center gap-2" style="margin-top:10px;">
+                <input type="text" id="aramaKutusu" class="form-control" style="margin-bottom:0; max-width:280px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariFiltrele()">
+                <div class="d-flex gap-2">
+                    <button class="btn-filter active" onclick="durumFiltrele('Tumu', this)">Tümü</button>
+                    <button class="btn-filter" onclick="durumFiltrele('Bekliyor', this)">Bekleyenler</button>
+                    <button class="btn-filter" onclick="durumFiltrele('Uretimde', this)">Üretimdekiler</button>
+                    <button class="btn-filter" onclick="durumFiltrele('Bitti', this)">Bitenler</button>
+                </div>
+            </div>
         </div>
+
         <div id="isKartlari" style="margin-top:16px;"></div>
     </div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwlE6amF4pPvPv7vSKs45KbMp3YtUqyItY2y77YhqIcxiWi65JIAONg1-j8whC_YHnv/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwXPt1qAmB-huWN8gF4Pl2NNhSRGzdQulGPacoSipPM18sHW2G6IlBSKrKCqVf8bLp7/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
+    let aktifDurumFiltresi = "Tumu";
 
     function scriptTemizle() {
         const tempScripts = document.querySelectorAll('.jsonp-temp');
@@ -75,14 +95,11 @@
         return String(deger).trim();
     }
 
-    // Tarihi GG.AA.YYYY formatında göstermek için yardımcı fonksiyon
     function formatTarihEkrana(tarihStr) {
         if (!tarihStr || tarihStr === "-") return "-";
         try {
             var parts = tarihStr.split("-");
-            if (parts.length === 3) {
-                return parts[2] + "." + parts[1] + "." + parts[0];
-            }
+            if (parts.length === 3) return parts[2] + "." + parts[1] + "." + parts[0];
             return tarihStr;
         } catch(e) { return tarihStr; }
     }
@@ -113,15 +130,35 @@
         }
 
         mevcutIsler = data;
+        kartlariEkranaBas();
+    }
+
+    function kartlariEkranaBas() {
         var html = "";
-        document.getElementById("totalCount").innerText = "Toplam Kalem Sayısı: " + data.length;
+        var aramaMetni = document.getElementById("aramaKutusu") ? document.getElementById("aramaKutusu").value.toLowerCase() : "";
         
-        if(!data || data.length === 0) {
-            html = '<div style="background-color:#fff3cd; padding:16px; border-radius:6px; text-align:center;">Aktif iş emri bulunamadı.</div>';
-            document.getElementById("btnTopluKaydet").classList.add("d-none");
+        var filtrelenmis = mevcutIsler.filter(function(is) {
+            var fDurum = formatVeri(is.firmadurumu);
+            var aramaUyum = (
+                formatVeri(is.sprsno).toLowerCase().includes(aramaMetni) ||
+                formatVeri(is.tanim).toLowerCase().includes(aramaMetni) ||
+                formatVeri(is.ilgiliNo).toLowerCase().includes(aramaMetni)
+            );
+            
+            var durumUyum = true;
+            if (aktifDurumFiltresi === "Bekliyor") durumUyum = (fDurum === "Bekliyor");
+            else if (aktifDurumFiltresi === "Uretimde") durumUyum = (fDurum === "Uretimde" || fDurum === "Üretimde");
+            else if (aktifDurumFiltresi === "Bitti") durumUyum = (fDurum === "Bitti");
+
+            return aramaUyum && durumUyum;
+        });
+
+        document.getElementById("totalCount").innerText = "Gösterilen Kalem Sayısı: " + filtrelenmis.length + " / Toplam: " + mevcutIsler.length;
+
+        if(filtrelenmis.length === 0) {
+            html = '<div style="background-color:#fff3cd; padding:16px; border-radius:6px; text-align:center;">Arama kriterlerinize uygun iş emri bulunamadı.</div>';
         } else {
-            document.getElementById("btnTopluKaydet").classList.remove("d-none");
-            data.forEach(function(is) {
+            filtrelenmis.forEach(function(is) {
                 var cardId = formatVeri(is.id);
                 var fDurum = formatVeri(is.firmadurumu);
                 var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
@@ -130,7 +167,7 @@
                 var teslimTarihRaw = is.teslimtarihi && is.teslimtarihi !== "-" ? is.teslimtarihi : "";
                 var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
 
-                html += '<div class="card">' +
+                html += '<div class="card" id="card_' + cardId + '">' +
                     '<div class="d-flex justify-content-between">' +
                         '<div>' +
                             '<span class="badge" style="background-color: #27ae60;">' + fDurum + '</span>' +
@@ -151,7 +188,7 @@
                     '<div style="display:flex; gap:8px; align-items:flex-end; margin-top:12px; margin-bottom:12px;">' +
                         '<div style="flex:1;">' +
                             '<label style="font-size:12px; font-weight:bold; color:#555;">Firma Durumu</label>' +
-                            '<select id="durum_' + cardId + '" class="form-select" style="margin-top:4px;">' +
+                            '<select id="durum_' + cardId + '" class="form-select" style="margin-top:4px;" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
                                 '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
                                 '<option value="Uretimde" ' + (fDurum=='Uretimde' || fDurum=='Üretimde'?'selected':'') + '>Üretimde</option>' +
                                 '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
@@ -159,22 +196,60 @@
                         '</div>' +
                         '<div style="flex:1;">' +
                             '<label style="font-size:12px; font-weight:bold; color:#555;">Üretilen Miktar</label>' +
-                            '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + miktar + '">' +
+                            '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + miktar + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
                         '</div>' +
                         '<div style="flex:1;">' +
                             '<label style="font-size:12px; font-weight:bold; color:#555;">Teslim Tarihi</label>' +
-                            '<input type="date" id="teslim_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + teslimTarihRaw + '">' +
+                            '<input type="date" id="teslim_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + teslimTarihRaw + '" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
                         '</div>' +
                     '</div>' +
 
                     '<div style="margin-top:8px;">' +
                         '<label style="font-size:12px; font-weight:bold; color:#555;">Yan Sanayi Notu</label>' +
-                        '<input type="text" id="not_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" placeholder="Not girin..." value="' + notIcerigi + '">' +
+                        '<input type="text" id="not_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" placeholder="Not girin..." value="' + notIcerigi + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
                     '</div>' +
                 '</div>';
             });
         }
         document.getElementById("isKartlari").innerHTML = html;
+    }
+
+    function degisiklikVurgula(cardId) {
+        const cardElem = document.getElementById("card_" + cardId);
+        if (cardElem) cardElem.classList.add("modified");
+    }
+
+    function kartlariFiltrele() { kartlariEkranaBas(); }
+    
+    function durumFiltrele(durum, btnElem) {
+        aktifDurumFiltresi = durum;
+        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+        btnElem.classList.add('active');
+        kartlariEkranaBas();
+    }
+
+    function excelIndir() {
+        if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
+        
+        var excelData = mevcutIsler.map(function(is) {
+            return {
+                "Satır No": is.id,
+                "Sipariş No": is.sprsno,
+                "İlgili No": is.ilgiliNo,
+                "Tanım": is.tanim,
+                "Bakiye": is.ob,
+                "Sipariş Tarihi": is.sprstarihi,
+                "Teslim Tarihi": is.teslimtarihi,
+                "Firma Durumu": is.firmadurumu,
+                "Üretilen Miktar": is.uretilendir_miktar,
+                "Yan Sanayi Notu": is.yansanayinotu
+            };
+        });
+
+        var worksheet = XLSX.utils.json_to_sheet(excelData);
+        var workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "İş Listesi");
+        XLSX.writeFile(workbook, aktifFirma + "_Is_Listesi.xlsx");
     }
 
     function topluKaydet() {
@@ -183,13 +258,16 @@
         
         mevcutIsler.forEach(function(is) {
             var cardId = formatVeri(is.id);
-            guncellenecekler.push({
-                id: cardId,
-                durum: document.getElementById("durum_" + cardId).value,
-                adet: document.getElementById("adet_" + cardId).value,
-                teslimTarihi: document.getElementById("teslim_" + cardId).value,
-                not: document.getElementById("not_" + cardId).value
-            });
+            var durumElem = document.getElementById("durum_" + cardId);
+            if (durumElem) {
+                guncellenecekler.push({
+                    id: cardId,
+                    durum: durumElem.value,
+                    adet: document.getElementById("adet_" + cardId).value,
+                    teslimTarihi: document.getElementById("teslim_" + cardId).value,
+                    not: document.getElementById("not_" + cardId).value
+                });
+            }
         });
 
         const btn = document.getElementById("btnTopluKaydet");
