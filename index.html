@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -218,7 +219,7 @@
                 <div class="d-flex gap-2">
                     <button onclick="supplierExcelModalAc()" class="btn btn-info"><i class="fa-solid fa-file-import"></i> Toplu Excel Yükle</button>
                     <button onclick="sifreModalAc()" class="btn btn-warning"><i class="fa-solid fa-key"></i> Şifre Değiştir</button>
-                    <button onclick="excelIndir()" class="btn btn-excel"><i class="fa-solid fa-file-excel"></i> Excel İndir</button>
+                    <button onclick="excelIndir()" class="btn btn-excel" id="btnExcelIndir"><i class="fa-solid fa-file-excel"></i> Excel İndir</button>
                     <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success"><i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet</button>
                     <button onclick="location.reload()" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
                 </div>
@@ -278,7 +279,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzVo3-yPbOOhNfz84vp9mrUFYWFhMqRTcRUK_6ZF-71fFNorpFxcQDVRJMSCGqnQ_vM/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbylgFOXrHKDetFbwqhkyYz42ZsqEES2ITByyIvAN3DfIs6nLYFNBK9tyMyTafgSH3kv/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -463,11 +464,14 @@
         var baslangic = mevcutPaketIndex * paketBoyutu;
         
         if (baslangic >= toplam) {
-            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla güncellendi!</div>';
-            setTimeout(function() {
-                supplierExcelModalKapat();
-                isleriListele(aktifFirma, girilenSifre);
-            }, 1200);
+            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">E-posta bildirimi gönderiliyor...</p>';
+            tekMailGonder(toplam, function() {
+                statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla güncellendi!</div>';
+                setTimeout(function() {
+                    supplierExcelModalKapat();
+                    isleriListele(aktifFirma, girilenSifre);
+                }, 1200);
+            });
             return;
         }
 
@@ -493,6 +497,19 @@
             const statusDiv = document.getElementById("supplierUploadStatus");
             statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Hata oluştu! ' + (res.message || "") + '</div>';
         }
+    }
+
+    // TÜM PAKETLER BİTTİĞİNDE TEK MAİL ATAN FONKSİYON
+    function tekMailGonder(toplamAdet, callbackFn) {
+        scriptTemizle();
+        window.mailCallbackTamam = function(res) {
+            scriptTemizle();
+            if (callbackFn) callbackFn();
+        };
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&adet=" + toplamAdet + "&callback=mailCallbackTamam";
+        document.body.appendChild(script);
     }
 
     function jdeExcelYukle(event) {
@@ -639,60 +656,75 @@
         kartlariEkranaBas();
     }
 
-    // GÜNCELLENMİŞ EXCEL İNDİRME FONKSİYONU
-    function excelIndir() {
+    async function excelIndir() {
         if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
         
-        var excelData = mevcutIsler.map(function(is) {
-            return {
-                "Satır No": is.id,
-                "Sipariş No": is.sprsno,
-                "İlgili No": is.ilgiliNo,
-                "Tanım": is.tanim,
-                "Bakiye": is.ob,
-                "Sipariş Tarihi": formatTarihEkrana(is.sprstarihi),
-                "Bekleyen Gün": sprsGecenGunHesapla(is.sprstarihi),
-                "Teslim Tarihi": formatTarihEkrana(is.teslimtarihi), // Teslim Tarihi formatlandı (DD.MM.YYYY)
-                "Firma Durumu": is.firmadurumu,
-                "Üretilen Miktar": is.uretilendir_miktar,
-                "Yan Sanayi Notu": is.yansanayinotu
-            };
-        });
+        const btn = document.getElementById("btnExcelIndir");
+        const orjinalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
+        btn.disabled = true;
 
-        // 2. Sayfa Olarak Seçenekler Listesi (Liste Sayfası) Oluşturma
-        var workbook = XLSX.utils.book_new();
-        var worksheet = XLSX.utils.json_to_sheet(excelData);
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('İş Listesi');
 
-        var listSheetData = [
-            ["Durumlar"],
-            ["Bekliyor"],
-            ["Üretimde"],
-            ["Bitti"]
-        ];
-        var listSheet = XLSX.utils.aoa_to_sheet(listSheetData);
-        XLSX.utils.book_append_sheet(workbook, listSheet, "Secenekler");
+            worksheet.columns = [
+                { header: 'Satır No', key: 'id', width: 10 },
+                { header: 'Sipariş No', key: 'sprsno', width: 12 },
+                { header: 'İlgili No', key: 'ilgiliNo', width: 14 },
+                { header: 'Tanım', key: 'tanim', width: 24 },
+                { header: 'Bakiye', key: 'ob', width: 10 },
+                { header: 'Sipariş Tarihi', key: 'sprstarihi', width: 14 },
+                { header: 'Bekleyen Gün', key: 'gecenGun', width: 14 },
+                { header: 'Teslim Tarihi', key: 'teslimtarihi', width: 14 },
+                { header: 'Firma Durumu', key: 'firmadurumu', width: 16 },
+                { header: 'Üretilen Miktar', key: 'uretilendir_miktar', width: 14 },
+                { header: 'Yan Sanayi Notu', key: 'yansanayinotu', width: 28 }
+            ];
 
-        // Firma Durumu (I Sütunu) için Açılır Liste Doğrulaması (Data Validation)
-        var rangeCount = excelData.length + 1;
-        worksheet['!dataValidation'] = [
-            {
-                sqref: "I2:I" + rangeCount,
-                opts: {
-                    type: "list",
-                    formula1: "Secenekler!$A$2:$A$4", // İkinci sayfadaki seçeneklerden dinamik liste çeker
-                    showDropDown: true,
-                    error: "Lütfen seçeneği listeden seçin (Bekliyor, Üretimde, Bitti).",
-                    errorTitle: "Geçersiz Giriş"
-                }
+            mevcutIsler.forEach(is => {
+                worksheet.addRow({
+                    id: is.id,
+                    sprsno: is.sprsno,
+                    ilgiliNo: is.ilgiliNo,
+                    tanim: is.tanim,
+                    ob: is.ob,
+                    sprstarihi: formatTarihEkrana(is.sprstarihi),
+                    gecenGun: sprsGecenGunHesapla(is.sprstarihi),
+                    teslimtarihi: formatTarihEkrana(is.teslimtarihi),
+                    firmadurumu: is.firmadurumu,
+                    uretilendir_miktar: is.uretilendir_miktar,
+                    yansanayinotu: is.yansanayinotu
+                });
+            });
+
+            const totalRows = mevcutIsler.length + 1;
+            for (let i = 2; i <= totalRows; i++) {
+                const cell = worksheet.getCell(`I${i}`);
+                cell.dataValidation = {
+                    type: 'list',
+                    allowBlank: true,
+                    formulae: ['"Bekliyor,Üretimde,Bitti"'],
+                    showErrorMessage: true,
+                    errorTitle: 'Geçersiz Giriş',
+                    error: 'Lütfen listeden geçerli bir durum seçiniz (Bekliyor, Üretimde, Bitti).'
+                };
             }
-        ];
 
-        XLSX.utils.book_append_sheet(workbook, worksheet, "İş Listesi");
-        
-        // Çalışma kitabını varsayılan olarak İş Listesi sayfası açık gelecek şekilde ayarla
-        workbook.SheetNames = ["İş Listesi", "Secenekler"];
-        
-        XLSX.writeFile(workbook, aktifFirma + "_Is_Listesi.xlsx");
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = aktifFirma + "_Is_Listesi.xlsx";
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+        } catch (err) {
+            alert("Excel oluşturulurken bir hata oluştu: " + err.message);
+        } finally {
+            btn.innerHTML = orjinalHtml;
+            btn.disabled = false;
+        }
     }
 
     function topluKaydet() {
@@ -743,11 +775,13 @@
             var baslangic = mevcutPaketIndex * paketBoyutu;
             
             if (baslangic >= toplam) {
-                const btn = document.getElementById("btnTopluKaydet");
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-                btn.disabled = false;
-                alert("Güncellemeler başarıyla kaydedildi!");
-                isleriListele(aktifFirma, girilenSifre);
+                tekMailGonder(toplam, function() {
+                    const btn = document.getElementById("btnTopluKaydet");
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+                    btn.disabled = false;
+                    alert("Güncellemeler başarıyla kaydedildi!");
+                    isleriListele(aktifFirma, girilenSifre);
+                });
             } else {
                 var bitis = Math.min(baslangic + paketBoyutu, toplam);
                 var dilim = topluGuncellenecekler.slice(baslangic, bitis);
