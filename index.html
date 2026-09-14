@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yan Sanayi Is Takip Portali</title>
+    <title>Yan Sanayi İş Takip Portalı</title>
     <style>
         * { box-sizing: border-box; }
         body { background-color: #f4f6f9; font-family: sans-serif; margin: 0; padding: 0; }
@@ -30,15 +30,15 @@
 <body>
 <div class="container">
     <div class="text-center mb-4" id="headerSection">
-        <h2 style="color:#0d6efd;">Yan Sanayi Is Takip Portali</h2>
-        <p style="color:#6c757d;">Guncel fason siparislerinizi goruntuleyin ve durum bildirimi yapin.</p>
+        <h2 style="color:#0d6efd;">Yan Sanayi İş Takip Portalı</h2>
+        <p style="color:#6c757d;">Güncel fason siparişlerinizi görüntüleyin ve durum bildirimi yapın.</p>
     </div>
 
     <div id="loginSection">
         <div class="card" style="max-width: 450px; margin: 0 auto;">
-            <label style="font-weight:700; margin-bottom:8px; display:block;">Tedarikci Adinizi Girin:</label>
-            <input type="text" id="firmaAdi" class="form-control" placeholder="Orn: EMO">
-            <button onclick="isleriListele()" id="btnListele" class="btn btn-primary">Islerimi Listele</button>
+            <label style="font-weight:700; margin-bottom:8px; display:block;">Tedarikçi Adınızı Girin:</label>
+            <input type="text" id="firmaAdi" class="form-control" placeholder="Örn: EMO">
+            <button onclick="isleriListele()" id="btnListele" class="btn btn-primary">İşlerimi Listele</button>
         </div>
     </div>
 
@@ -51,7 +51,7 @@
                 </div>
                 <div class="d-flex gap-2">
                     <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success">Toplu Kaydet</button>
-                    <button onclick="location.reload()" class="btn btn-danger">Cikis</button>
+                    <button onclick="location.reload()" class="btn btn-danger">Çıkış</button>
                 </div>
             </div>
         </div>
@@ -60,10 +60,15 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwN3cH9-i6N5aYNdBmYRjOe_8Hm6hovwi7N4_h1k6o8VaRmePVUHlcsRsYY9uOwjdfz/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwUy-JO1vzjm72G2yHQLAgN7CnlmdJQTCrmQI4ratS74Zy5kPk-cLTAvA7eNM1FVVB-/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
+
+    function scriptTemizle() {
+        const tempScripts = document.querySelectorAll('.jsonp-temp');
+        tempScripts.forEach(s => s.remove());
+    }
 
     function formatVeri(deger) {
         if (deger === undefined || deger === null) return "-";
@@ -77,29 +82,36 @@
     }
 
     function isleriListele() {
-        console.log("isleriListele fonksiyonu başarıyla tetiklendi!");
         aktifFirma = document.getElementById("firmaAdi").value.trim();
-        if(!aktifFirma) return alert("Lutfen tedarikci adinizi girin.");
+        if(!aktifFirma) return alert("Lütfen tedarikçi adınızı girin.");
         
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
-        document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>Isleriniz yukleniyor...</p></div>';
+        document.getElementById("isKartlari").innerHTML = '<div class="text-center"><div class="spinner"></div><p>İşleriniz yükleniyor...</p></div>';
 
+        scriptTemizle();
         const script = document.createElement('script');
+        script.className = 'jsonp-temp';
         script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
     }
 
     function veriGeriDonusIsle(data) {
-        console.log("Google Sheets'ten gelen veri paketi:", data);
+        scriptTemizle();
+        if (data.error) {
+            alert("Hata: " + data.error);
+            document.getElementById("isKartlari").innerHTML = '<div style="color:red; text-align:center;">Sayfa yüklenirken hata oluştu.</div>';
+            return;
+        }
+
         mevcutIsler = data;
         var html = "";
-        document.getElementById("totalCount").innerText = "Toplam Kalem Sayisi: " + data.length;
+        document.getElementById("totalCount").innerText = "Toplam Kalem Sayısı: " + data.length;
         
         if(!data || data.length === 0) {
-            html = '<div style="background-color:#fff3cd; padding:16px; border-radius:6px; text-align:center;">Aktif is emri bulunamadi.</div>';
+            html = '<div style="background-color:#fff3cd; padding:16px; border-radius:6px; text-align:center;">Aktif iş emri bulunamadı.</div>';
             document.getElementById("btnTopluKaydet").classList.add("d-none");
         } else {
             document.getElementById("btnTopluKaydet").classList.remove("d-none");
@@ -114,7 +126,7 @@
                         '<div>' +
                             '<span class="badge" style="background-color: #27ae60;">' + fDurum + '</span>' +
                             '<h5 style="margin:4px 0; font-weight:700; color:#2c3e50;">' + formatVeri(is.tanim) + '</h5>' +
-                            '<small style="color:#6c757d;">Siparis No: ' + formatVeri(is.sprsno) + ' | Satir No: ' + cardId + '</small>' +
+                            '<small style="color:#6c757d;">Sipariş No: ' + formatVeri(is.sprsno) + ' | Satır No: ' + cardId + '</small>' +
                         '</div>' +
                         '<div style="text-align:right;">' +
                             '<small style="color:#6c757d; display:block;">Bakiye</small>' +
@@ -123,7 +135,7 @@
                     '</div>' +
                     '<div style="display:flex; gap:8px; margin:12px 0;">' +
                         '<div style="flex:1;"><div class="info-block"><b>Sp Tp:</b> ' + formatVeri(is.sptp) + '</div></div>' +
-                        '<div style="flex:1;"><div class="info-block"><b>Sprs Tarihi:</b> ' + formatVeri(is.sprstarihi) + '</div></div>' +
+                        '<div style="flex:1;"><div class="info-block"><b>Sprş Tarihi:</b> ' + formatVeri(is.sprstarihi) + '</div></div>' +
                         '<div style="flex:1;"><div class="info-block"><b>Teslim Tarihi:</b> ' + formatVeri(is.teslimtarihi) + '</div></div>' +
                     '</div>' +
                     '<div style="display:flex; gap:8px; align-items:flex-end; margin-top:12px; margin-bottom:12px;">' +
@@ -131,12 +143,12 @@
                             '<label style="font-size:12px; font-weight:bold; color:#555;">Firma Durumu</label>' +
                             '<select id="durum_' + cardId + '" class="form-select" style="margin-top:4px;">' +
                                 '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
-                                '<option value="Uretimde" ' + (fDurum=='Uretimde'?'selected':'') + '>Uretimde</option>' +
+                                '<option value="Uretimde" ' + (fDurum=='Uretimde'?'selected':'') + '>Üretimde</option>' +
                                 '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
                             '</select>' +
                         '</div>' +
                         '<div style="flex:1;">' +
-                            '<label style="font-size:12px; font-weight:bold; color:#555;">Uretilen Miktar</label>' +
+                            '<label style="font-size:12px; font-weight:bold; color:#555;">Üretilen Miktar</label>' +
                             '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + miktar + '">' +
                         '</div>' +
                     '</div>' +
@@ -164,9 +176,31 @@
             });
         });
 
-        document.getElementById("btnTopluKaydet").innerText = "Kaydediliyor...";
+        const btn = document.getElementById("btnTopluKaydet");
+        btn.innerText = "Kaydediliyor...";
+        btn.disabled = true;
+
+        scriptTemizle();
+        const payload = encodeURIComponent(JSON.stringify(guncellenecekler));
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=kayitTamamlandi";
+        document.body.appendChild(script);
+    }
+
+    function kayitTamamlandi(res) {
+        scriptTemizle();
+        const btn = document.getElementById("btnTopluKaydet");
+        btn.innerText = "Toplu Kaydet";
+        btn.disabled = false;
+
+        if (res && res.status === "success") {
+            alert("Güncellemeler başarıyla kaydedildi!");
+            isleriListele(); // Yeniden listele
+        } else {
+            alert("Kayıt sırasında bir hata oluştu: " + (res.message || "Bilinmeyen hata"));
         }
+    }
 </script>
 </body>
 </html>
-
