@@ -173,7 +173,7 @@
                 <small style="color:var(--text-muted);">Devam etmek için firma adınızı girin</small>
             </div>
             <label style="font-weight:600; font-size:14px; margin-bottom:8px; display:block;">Tedarikçi Adı:</label>
-            <input type="text" id="firmaAdi" class="form-control" placeholder="Örn: EMO">
+            <input type="text" id="firmaAdi" class="form-control" placeholder="Firma adınızı yazın...">
             <button onclick="isleriListele()" id="btnListele" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> İşlerimi Listele</button>
         </div>
     </div>
@@ -211,7 +211,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxFLrQosnfRw1yEwXkd6-x9x8KpkiDa3BXHM98CDNyqa_p25uzWqC26MmfRGyga0-9v/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwN3cH9-i6N5aYNdBmYRjOe_8Hm6hovwi7N4_h1k6o8VaRmePVUHlcsRsYY9uOwjdfz/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -228,7 +228,6 @@
         return str === "" ? "-" : str;
     }
 
-    // Tarihi GG.AA.YYYY formatına kesin dönüştüren fonksiyon
     function formatTarihEkrana(tarihStr) {
         if (!tarihStr || tarihStr === "-" || tarihStr === "undefined") return "-";
         try {
