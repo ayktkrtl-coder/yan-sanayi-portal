@@ -159,7 +159,6 @@
             cursor: pointer;
         }
         
-        /* Modal Stili */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000;
@@ -257,7 +256,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzE9vte-_SmhwBr1kITRTYhCS7-KGUAYJCEqxoyNEgWTirdtKRB6r3vz-PiHjbUFPjr/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwN3cH9-i6N5aYNdBmYRjOe_8Hm6hovwi7N4_h1k6o8VaRmePVUHlcsRsYY9uOwjdfz/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -285,6 +284,32 @@
             if (parts.length === 3) return parts[2] + "." + parts[1] + "." + parts[0];
             return str;
         } catch(e) { return tarihStr; }
+    }
+
+    // Sipariş Tarihine Göre Geçen Gün Sayısını Hesaplama Fonksiyonu
+    function sprsGecenGunHesapla(tarihStr) {
+        if (!tarihStr || tarihStr === "-" || tarihStr === "undefined") return "-";
+        try {
+            var str = String(tarihStr).trim();
+            if (str.includes("T")) str = str.split("T")[0];
+            var parts = str.split("-");
+            
+            if (parts.length === 3) {
+                var sprsTarihi = new Date(parts[0], parts[1] - 1, parts[2]);
+                var bugun = new Date();
+                
+                // Saat sıfırlama (Sadece gün farkını almak için)
+                bugun.setHours(0,0,0,0);
+                sprsTarihi.setHours(0,0,0,0);
+                
+                var farkZaman = bugun.getTime() - sprsTarihi.getTime();
+                var farkGun = Math.floor(farkZaman / (1000 * 3600 * 24));
+                
+                if (farkGun <= 0) return "Bugün";
+                return farkGun + " Gün";
+            }
+            return "-";
+        } catch(e) { return "-"; }
     }
 
     function girisYap() {
@@ -432,6 +457,7 @@
                 var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
                 var spTarihFormatli = formatTarihEkrana(is.sprstarihi);
+                var gecenGun = sprsGecenGunHesapla(is.sprstarihi);
                 var teslimTarihRaw = is.teslimtarihi && is.teslimtarihi !== "-" ? is.teslimtarihi : "";
                 var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
 
@@ -439,6 +465,7 @@
                 if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
                 if(fDurum === "Bitti") badgeClass = "badge-bitti";
 
+                // Kaç gündür beklediği eklendi
                 html += '<div class="card" id="card_' + cardId + '">' +
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center gap-2">' +
@@ -450,6 +477,7 @@
                         '</div>' +
                         '<div class="d-flex align-items-center gap-2">' +
                             '<span style="font-size:11px; color:var(--text-muted);">Sprş Tar: ' + spTarihFormatli + '</span>' +
+                            '<span class="info-pill" style="background:#fff7ed; color:#c2410c; border-color:#ffedd5; font-weight:700;"><i class="fa-regular fa-clock"></i> ' + gecenGun + '</span>' +
                             '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + formatVeri(is.ob) + '</span>' +
                         '</div>' +
                     '</div>' +
@@ -503,6 +531,7 @@
                 "Tanım": is.tanim,
                 "Bakiye": is.ob,
                 "Sipariş Tarihi": is.sprstarihi,
+                "Bekleyen Gün": sprsGecenGunHesapla(is.sprstarihi),
                 "Teslim Tarihi": is.teslimtarihi,
                 "Firma Durumu": is.firmadurumu,
                 "Üretilen Miktar": is.uretilendir_miktar,
