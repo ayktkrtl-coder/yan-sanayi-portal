@@ -271,20 +271,25 @@
             </div>
             <div id="supplierUploadStatus" style="margin-top:12px; text-align:center; font-size:13px;"></div>
             <div style="margin-top:16px; text-align:right;">
-                <button onclick="supplierExcelModalKapat()" class="btn btn-danger">Kapat</button>
+                <button onclick="supplierExcelModalKapat()" class="btn btn-danger" id="btnModalKapat">Kapat</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxnt2VQfTP876_iIvsb0qF9WBhIYeTgdMvOdvLdRqo51PtcsPTlVnbnsdOOirs97_2y/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwN3cH9-i6N5aYNdBmYRjOe_8Hm6hovwi7N4_h1k6o8VaRmePVUHlcsRsYY9uOwjdfz/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
     let girilenSifre = "";
     let mevcutIsler = [];
     let aktifDurumFiltresi = "Tumu";
+
+    // Paketli Güncelleme Değişkenleri
+    let topluGuncellenecekler = [];
+    let paketBoyutu = 40; // URL Limitine Takılmamak için 40'ar kalemlik paketler
+    let mevcutPaketIndex = 0;
 
     function scriptTemizle() {
         const tempScripts = document.querySelectorAll('.jsonp-temp');
@@ -374,7 +379,11 @@
 
     function sifreModalAc() { document.getElementById("sifreModal").classList.remove("d-none"); }
     function sifreModalKapat() { document.getElementById("sifreModal").classList.add("d-none"); }
-    function supplierExcelModalAc() { document.getElementById("supplierExcelModal").classList.remove("d-none"); }
+    function supplierExcelModalAc() { 
+        document.getElementById("supplierUploadStatus").innerHTML = "";
+        document.getElementById("supplierFileInput").value = "";
+        document.getElementById("supplierExcelModal").classList.remove("d-none"); 
+    }
     function supplierExcelModalKapat() { document.getElementById("supplierExcelModal").classList.add("d-none"); }
 
     function sifreGuncelle() {
@@ -402,7 +411,7 @@
         }
     }
 
-    // Tedarikçinin Düzenlediği Excel'i Yükleme ve İşleme
+    // Tedarikçi Excel Yükleme İşlemi (Paketli / Chunk Gönderim)
     function supplierExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -418,7 +427,7 @@
             const worksheet = workbook.Sheets[firstSheetName];
             
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
-            let guncellenecekler = [];
+            topluGuncellenecekler = [];
 
             jsonData.forEach(row => {
                 var satirNo = row["Satır No"] || row["Satir No"] || row["ID"];
@@ -429,7 +438,7 @@
                         if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
                     }
 
-                    guncellenecekler.push({
+                    topluGuncellenecekler.push({
                         id: String(satirNo),
                         durum: row["Firma Durumu"] || row["Durum"] || "Bekliyor",
                         adet: row["Üretilen Miktar"] || row["Miktar"] || "0",
@@ -439,31 +448,52 @@
                 }
             });
 
-            if (guncellenecekler.length === 0) {
+            if (topluGuncellenecekler.length === 0) {
                 statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı.</div>';
                 return;
             }
 
-            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">' + guncellenecekler.length + ' kalem güncelleniyor...</p>';
-
-            scriptTemizle();
-            const payload = encodeURIComponent(JSON.stringify(guncellenecekler));
-            const script = document.createElement('script');
-            script.className = 'jsonp-temp';
-            script.src = API_URL + "?action=update&data=" + payload + "&callback=supplierUploadTamamlandi";
-            document.body.appendChild(script);
+            mevcutPaketIndex = 0;
+            sonrakiPaketiGonder();
         };
         reader.readAsArrayBuffer(file);
     }
 
-    function supplierUploadTamamlandi(res) {
+    function sonrakiPaketiGonder() {
+        const statusDiv = document.getElementById("supplierUploadStatus");
+        var toplam = topluGuncellenecekler.length;
+        var baslangic = mevcutPaketIndex * paketBoyutu;
+        
+        if (baslangic >= toplam) {
+            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla güncellendi!</div>';
+            setTimeout(function() {
+                supplierExcelModalKapat();
+                isleriListele(aktifFirma, girilenSifre);
+            }, 1200);
+            return;
+        }
+
+        var bitis = Math.min(baslangic + paketBoyutu, toplam);
+        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">' + bitis + ' / ' + toplam + ' kalem güncelleniyor...</p>';
+
+        scriptTemizle();
+        const payload = encodeURIComponent(JSON.stringify(dilim));
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=supplierPaketGeriDonus";
+        document.body.appendChild(script);
+    }
+
+    function supplierPaketGeriDonus(res) {
         scriptTemizle();
         if (res && res.status === "success") {
-            alert("Excel üzerindeki tüm güncellemeler başarıyla kaydedildi!");
-            supplierExcelModalKapat();
-            isleriListele(aktifFirma, girilenSifre);
+            mevcutPaketIndex++;
+            sonrakiPaketiGonder();
         } else {
-            alert("Güncelleme hatası: " + (res.message || "Hata"));
+            const statusDiv = document.getElementById("supplierUploadStatus");
+            statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Hata oluştu! ' + (res.message || "") + '</div>';
         }
     }
 
@@ -631,6 +661,21 @@
         });
 
         var worksheet = XLSX.utils.json_to_sheet(excelData);
+        
+        var rangeCount = excelData.length + 1;
+        worksheet['!dataValidation'] = [
+            {
+                sqref: "I2:I" + rangeCount,
+                opts: {
+                    type: "list",
+                    formula1: '"Bekliyor,Üretimde,Bitti"',
+                    showDropDown: true,
+                    error: "Lütfen listeden geçerli bir durum seçin (Bekliyor, Üretimde, Bitti).",
+                    errorTitle: "Geçersiz Durum"
+                }
+            }
+        ];
+
         var workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "İş Listesi");
         XLSX.writeFile(workbook, aktifFirma + "_Is_Listesi.xlsx");
@@ -657,28 +702,51 @@
             });
         });
 
+        topluGuncellenecekler = guncellenecekler;
+        mevcutPaketIndex = 0;
+
         const btn = document.getElementById("btnTopluKaydet");
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
         btn.disabled = true;
 
+        var baslangic = mevcutPaketIndex * paketBoyutu;
+        var bitis = Math.min(baslangic + paketBoyutu, topluGuncellenecekler.length);
+        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+
         scriptTemizle();
-        const payload = encodeURIComponent(JSON.stringify(guncellenecekler));
+        const payload = encodeURIComponent(JSON.stringify(dilim));
         const script = document.createElement('script');
         script.className = 'jsonp-temp';
-        script.src = API_URL + "?action=update&data=" + payload + "&callback=kayitTamamlandi";
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
         document.body.appendChild(script);
     }
 
-    function kayitTamamlandi(res) {
+    function topluKaydetPaketGeriDonus(res) {
         scriptTemizle();
-        const btn = document.getElementById("btnTopluKaydet");
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-        btn.disabled = false;
-
         if (res && res.status === "success") {
-            alert("Güncellemeler başarıyla kaydedildi!");
-            isleriListele(aktifFirma, girilenSifre);
+            mevcutPaketIndex++;
+            var toplam = topluGuncellenecekler.length;
+            var baslangic = mevcutPaketIndex * paketBoyutu;
+            
+            if (baslangic >= toplam) {
+                const btn = document.getElementById("btnTopluKaydet");
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+                btn.disabled = false;
+                alert("Güncellemeler başarıyla kaydedildi!");
+                isleriListele(aktifFirma, girilenSifre);
+            } else {
+                var bitis = Math.min(baslangic + paketBoyutu, toplam);
+                var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+                const payload = encodeURIComponent(JSON.stringify(dilim));
+                const script = document.createElement('script');
+                script.className = 'jsonp-temp';
+                script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
+                document.body.appendChild(script);
+            }
         } else {
+            const btn = document.getElementById("btnTopluKaydet");
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+            btn.disabled = false;
             alert("Kayıt sırasında bir hata oluştu: " + (res.message || "Bilinmeyen hata"));
         }
     }
