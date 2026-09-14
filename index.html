@@ -156,6 +156,17 @@
             margin: 20px auto; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .drop-zone {
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            background-color: #f0f3ff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .drop-zone:hover { background-color: #e0e7ff; }
     </style>
 </head>
 <body>
@@ -165,6 +176,7 @@
         <p style="color:var(--text-muted); margin:0;">Güncel fason siparişlerinizi görüntüleyin ve durum bildirimi yapın.</p>
     </div>
 
+    <!-- Login Section -->
     <div id="loginSection">
         <div class="card" style="max-width: 420px; margin: 40px auto; padding: 32px; border-left: none;">
             <div style="text-align:center; margin-bottom:20px;">
@@ -172,12 +184,40 @@
                 <h3 style="margin:12px 0 4px 0;">Firma Girişi</h3>
                 <small style="color:var(--text-muted);">Devam etmek için firma adınızı girin</small>
             </div>
-            <label style="font-weight:600; font-size:14px; margin-bottom:8px; display:block;">Tedarikçi Adı:</label>
-            <input type="text" id="firmaAdi" class="form-control" placeholder="Firma adınızı yazın...">
-            <button onclick="isleriListele()" id="btnListele" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> İşlerimi Listele</button>
+            <label style="font-weight:600; font-size:14px; margin-bottom:8px; display:block;">Tedarikçi Adı veya Yetkili Kodu:</label>
+            <input type="text" id="firmaAdi" class="form-control" placeholder="Firma adınızı veya ADMIN yazın..." oninput="adminKontrol(this.value)">
+            
+            <div id="passDiv" class="d-none">
+                <label style="font-weight:600; font-size:14px; margin-bottom:8px; display:block;">Yönetici Şifresi:</label>
+                <input type="password" id="adminPass" class="form-control" placeholder="Şifreniz...">
+            </div>
+
+            <button onclick="girisYap()" id="btnListele" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap / İşleri Listele</button>
         </div>
     </div>
 
+    <!-- Admin Panel Section -->
+    <div id="adminSection" class="d-none">
+        <div class="card" style="max-width: 600px; margin: 20px auto; padding: 32px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 style="margin:0; color:var(--primary);"><i class="fa-solid fa-user-gear"></i> JDE Veri Güncelleme Paneli</h3>
+                <button onclick="location.reload()" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
+            </div>
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">
+                JDE ERP sisteminden indirdiğiniz güncel fason Excel (.xlsx veya .csv) raporunu aşağıdaki alana sürükleyin veya dosya seçin.
+            </p>
+            
+            <div class="drop-zone" onclick="document.getElementById('excelFileInput').click()">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size:48px; color:var(--primary); margin-bottom:12px;"></i>
+                <h4 style="margin:0 0 4px 0;">JDE Excel Dosyasını Buraya Bırakın</h4>
+                <small style="color:var(--text-muted);">Veya bilgisayarınızdan seçmek için tıklayın</small>
+                <input type="file" id="excelFileInput" class="d-none" accept=".xlsx, .xls, .csv" onchange="jdeExcelYukle(event)">
+            </div>
+            <div id="uploadStatus" style="margin-top:16px; text-align:center;"></div>
+        </div>
+    </div>
+
+    <!-- Main Content Section -->
     <div id="listSection" class="d-none">
         <div class="sticky-top-panel">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -211,7 +251,8 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycby9Q6_eENP3-BeWKAIE5xnGmIPx7f5eiWtlI-XSMQ_SEMIsJu2cSr1-yB4ch6x-ooZk/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwmVmsKB4fb8ilwvuKoJNfd46avyXElYO8UeE4UWlo5En2b1PCPFqp5qX0byFgdb9_x/exec"; 
+    const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -233,19 +274,41 @@
         try {
             var str = String(tarihStr).trim();
             if (str.includes("T")) str = str.split("T")[0];
-            
             var parts = str.split("-");
-            if (parts.length === 3) {
-                return parts[2] + "." + parts[1] + "." + parts[0];
-            }
+            if (parts.length === 3) return parts[2] + "." + parts[1] + "." + parts[0];
             return str;
         } catch(e) { return tarihStr; }
     }
 
+    function adminKontrol(val) {
+        const passDiv = document.getElementById("passDiv");
+        if(val.trim().toUpperCase() === "ADMIN") {
+            passDiv.classList.remove("d-none");
+        } else {
+            passDiv.classList.add("d-none");
+        }
+    }
+
+    function girisYap() {
+        var inputVal = document.getElementById("firmaAdi").value.trim();
+        if(!inputVal) return alert("Lütfen tedarikçi adınızı veya yetkili kodunu girin.");
+
+        if(inputVal.toUpperCase() === "ADMIN") {
+            var girilenSifre = document.getElementById("adminPass").value.trim();
+            if(girilenSifre === ADMIN_SIFRE) {
+                document.getElementById("loginSection").classList.add("d-none");
+                document.getElementById("headerSection").classList.add("d-none");
+                document.getElementById("adminSection").classList.remove("d-none");
+            } else {
+                alert("Hatalı yönetici şifresi!");
+            }
+        } else {
+            isleriListele();
+        }
+    }
+
     function isleriListele() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
-        if(!aktifFirma) return alert("Lütfen tedarikçi adınızı girin.");
-        
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
         document.getElementById("headerSection").classList.add("d-none");
@@ -257,6 +320,46 @@
         script.className = 'jsonp-temp';
         script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
+    }
+
+    function jdeExcelYukle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusDiv = document.getElementById("uploadStatus");
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">JDE Dosyası işleniyor ve Google Sheets güncelleniyor...</p>';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+            
+            if (jsonData.length > 0) jsonData.shift();
+
+            scriptTemizle();
+            const payload = encodeURIComponent(JSON.stringify(jsonData));
+            const script = document.createElement('script');
+            script.className = 'jsonp-temp';
+            script.src = API_URL + "?action=upload&excelData=" + payload + "&callback=uploadTamamlandi";
+            document.body.appendChild(script);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function uploadTamamlandi(res) {
+        scriptTemizle();
+        const statusDiv = document.getElementById("uploadStatus");
+        if (res && res.status === "success") {
+            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> JDE Verileri Başarıyla Güncellendi!</div>';
+            alert("Google Sheets tablosu JDE raporuyla başarıyla güncellendi!");
+        } else {
+            statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> Güncelleme Hatası!</div>';
+            alert("Hata: " + (res.message || "Bilinmeyen hata"));
+        }
     }
 
     function veriGeriDonusIsle(data) {
