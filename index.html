@@ -279,7 +279,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwNVTvu9ObzpsA2mAei-DNi6yY1TfNXB4eQUCbaHEFosCpsN-LiW-TSJTOy0c9_fgHC/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbw3NynXSJ3wbDBB-22XPc-L0IzGBf7ahQvj9bmCa-raQpZFtCBdwhvBLrK95C0ndL3O/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -330,6 +330,16 @@
         var ay = String(d.getMonth() + 1).padStart(2, '0');
         var yil = d.getFullYear();
         return gun + "." + ay + "." + yil;
+    }
+
+    // Input type="date" için ISO formatına (YYYY-MM-DD) çeviren fonksiyon
+    function formatTarihInput(tarihStr) {
+        var d = tarihAyristir(tarihStr);
+        if (!d) return "";
+        var gun = String(d.getDate()).padStart(2, '0');
+        var ay = String(d.getMonth() + 1).padStart(2, '0');
+        var yil = d.getFullYear();
+        return yil + "-" + ay + "-" + gun;
     }
 
     function sprsGecenGunHesapla(tarihStr) {
@@ -599,7 +609,9 @@
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
                 var spTarihFormatli = formatTarihEkrana(is.sprstarihi);
                 var gecenGun = sprsGecenGunHesapla(is.sprstarihi);
-                var teslimTarihRaw = is.teslimtarihi && is.teslimtarihi !== "-" ? is.teslimtarihi : "";
+                
+                // Tarihi input type="date" yapısına uygun formata (YYYY-MM-DD) dönüştürüyoruz
+                var teslimTarihInput = formatTarihInput(is.teslimtarihi);
                 var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
 
                 var badgeClass = "badge-bekliyor";
@@ -634,7 +646,7 @@
                             '<input type="number" id="adet_' + cardId + '" class="form-control" placeholder="Miktar" value="' + miktar + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
                         '</div>' +
                         '<div style="width:130px;">' +
-                            '<input type="date" id="teslim_' + cardId + '" class="form-control" value="' + teslimTarihRaw + '" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
+                            '<input type="date" id="teslim_' + cardId + '" class="form-control" value="' + teslimTarihInput + '" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
                         '</div>' +
                         '<div style="flex:1;">' +
                             '<input type="text" id="not_' + cardId + '" class="form-control" placeholder="Not ekleyin..." value="' + notIcerigi + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
@@ -660,7 +672,6 @@
         kartlariEkranaBas();
     }
 
-    // TARİH OKUMALARI GARANTİYE ALINMIŞ EXCEL İNDİRME FONKSİYONU
     async function excelIndir() {
         if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
         
