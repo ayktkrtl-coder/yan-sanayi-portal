@@ -279,7 +279,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwRQCpULn_NdSlu0i_jfy7cHXmRat-Os9xGvIkpdibQlheNFkcmKnQTYtR0CwUf-VzH/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbxuHgoXn_itg0Kzs2wRcauZIMrmvfMYK1hs7JfOCz9qxql5o7DnVaDuXQMlBLN5sxhv/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -305,15 +305,20 @@
     function tarihAyristir(tarihStr) {
         if (!tarihStr || tarihStr === "-" || tarihStr === "undefined") return null;
         try {
-            var d = new Date(tarihStr);
-            if (!isNaN(d.getTime())) return d;
-            
             var str = String(tarihStr).trim();
             if (str.includes("T")) str = str.split("T")[0];
-            var parts = str.split("-");
-            if (parts.length === 3) {
-                return new Date(parts[0], parts[1] - 1, parts[2]);
+            
+            if (str.includes("-")) {
+                var p = str.split("-");
+                if (p.length === 3) return new Date(p[0], p[1] - 1, p[2]);
             }
+            if (str.includes(".")) {
+                var p2 = str.split(".");
+                if (p2.length === 3) return new Date(p2[2], p2[1] - 1, p2[0]);
+            }
+            
+            var d = new Date(str);
+            if (!isNaN(d.getTime())) return d;
             return null;
         } catch(e) { return null; }
     }
@@ -655,7 +660,7 @@
         kartlariEkranaBas();
     }
 
-    // GÜNCELLEŞTİRİLMİŞ EŞİTLENMİŞ EXCEL İNDİRME FONKSİYONU
+    // TARİH OKUMALARI GARANTİYE ALINMIŞ EXCEL İNDİRME FONKSİYONU
     async function excelIndir() {
         if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
         
@@ -683,8 +688,8 @@
             ];
 
             mevcutIsler.forEach(is => {
-                var rawSprsTar = is.sprstarihi || is.sprsTarihi || "";
-                var rawTeslimTar = is.teslimtarihi || is.teslimTarihi || "";
+                var sTar = is.sprstarihi || "";
+                var tTar = is.teslimtarihi || "";
 
                 worksheet.addRow({
                     id: is.id,
@@ -692,9 +697,9 @@
                     ilgiliNo: is.ilgiliNo,
                     tanim: is.tanim,
                     ob: is.ob,
-                    sprstarihi: formatTarihEkrana(rawSprsTar),
-                    gecenGun: sprsGecenGunHesapla(rawSprsTar),
-                    teslimtarihi: formatTarihEkrana(rawTeslimTar),
+                    sprstarihi: formatTarihEkrana(sTar),
+                    gecenGun: sprsGecenGunHesapla(sTar),
+                    teslimtarihi: formatTarihEkrana(tTar),
                     firmadurumu: is.firmadurumu,
                     uretilendir_miktar: is.uretilendir_miktar,
                     yansanayinotu: is.yansanayinotu
