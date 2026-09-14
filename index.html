@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yan Sanayi İş Takip Portalı</title>
-    <!-- Modern Yazı Tipi (Inter) ve İkon Seti (FontAwesome) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Excel indirme kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -36,7 +34,6 @@
 
         .container { max-width: 980px; margin: 0 auto; padding: 32px 20px; }
         
-        /* Kart Stilleri */
         .card { 
             background-color: var(--card-bg); 
             border-radius: 12px; 
@@ -56,7 +53,6 @@
             border-color: #fde68a;
         }
 
-        /* Form Elemanları */
         .form-control, .form-select { 
             display: block; 
             width: 100%; 
@@ -76,7 +72,6 @@
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
 
-        /* Butonlar */
         .btn { 
             display: inline-flex; 
             align-items: center;
@@ -111,14 +106,12 @@
         .btn-filter:hover { background-color: #e2e8f0; }
         .btn-filter.active { background-color: var(--primary); color: #fff; border-color: var(--primary); }
 
-        /* Yardımcı Sınıflar */
         .d-none { display: none !important; }
         .d-flex { display: flex !important; }
         .justify-content-between { justify-content: space-between !important; }
         .align-items-center { align-items: center !important; }
         .gap-2 { gap: 8px !important; }
         
-        /* Rozetler ve Bilgi Blokları */
         .badge { 
             display: inline-block; 
             padding: 4px 10px; 
@@ -142,7 +135,6 @@
             border: 1px solid #e2e8f0;
         }
 
-        /* Yapışkan Üst Panel */
         .sticky-top-panel { 
             position: sticky; 
             top: 0; 
@@ -168,13 +160,11 @@
 </head>
 <body>
 <div class="container">
-    <!-- Header -->
     <div class="text-center mb-4" id="headerSection" style="margin-bottom:32px;">
         <h2 style="color:var(--primary); font-weight:700; font-size:28px; margin:0 0 8px 0;"><i class="fa-solid fa-boxes-stacked"></i> Yan Sanayi İş Takip Portalı</h2>
         <p style="color:var(--text-muted); margin:0;">Güncel fason siparişlerinizi görüntüleyin ve durum bildirimi yapın.</p>
     </div>
 
-    <!-- Login Section -->
     <div id="loginSection">
         <div class="card" style="max-width: 420px; margin: 40px auto; padding: 32px; border-left: none;">
             <div style="text-align:center; margin-bottom:20px;">
@@ -188,7 +178,6 @@
         </div>
     </div>
 
-    <!-- Main Content Section -->
     <div id="listSection" class="d-none">
         <div class="sticky-top-panel">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -203,7 +192,6 @@
                 </div>
             </div>
             
-            <!-- Arama ve Filtreleme -->
             <div class="d-flex justify-content-between align-items-center gap-2" style="margin-top:14px;">
                 <div style="position:relative; flex:1; max-width:300px;">
                     <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:12px; top:12px; color:var(--text-muted); font-size:13px;"></i>
@@ -223,7 +211,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwN3cH9-i6N5aYNdBmYRjOe_8Hm6hovwi7N4_h1k6o8VaRmePVUHlcsRsYY9uOwjdfz/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbxFLrQosnfRw1yEwXkd6-x9x8KpkiDa3BXHM98CDNyqa_p25uzWqC26MmfRGyga0-9v/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -236,15 +224,22 @@
 
     function formatVeri(deger) {
         if (deger === undefined || deger === null) return "-";
-        return String(deger).trim();
+        var str = String(deger).trim();
+        return str === "" ? "-" : str;
     }
 
+    // Tarihi GG.AA.YYYY formatına kesin dönüştüren fonksiyon
     function formatTarihEkrana(tarihStr) {
-        if (!tarihStr || tarihStr === "-") return "-";
+        if (!tarihStr || tarihStr === "-" || tarihStr === "undefined") return "-";
         try {
-            var parts = tarihStr.split("-");
-            if (parts.length === 3) return parts[2] + "." + parts[1] + "." + parts[0];
-            return tarihStr;
+            var str = String(tarihStr).trim();
+            if (str.includes("T")) str = str.split("T")[0];
+            
+            var parts = str.split("-");
+            if (parts.length === 3) {
+                return parts[2] + "." + parts[1] + "." + parts[0];
+            }
+            return str;
         } catch(e) { return tarihStr; }
     }
 
@@ -311,7 +306,6 @@
                 var teslimTarihRaw = is.teslimtarihi && is.teslimtarihi !== "-" ? is.teslimtarihi : "";
                 var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
 
-                // Durum Rozet Rengi
                 var badgeClass = "badge-bekliyor";
                 if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
                 if(fDurum === "Bitti") badgeClass = "badge-bitti";
