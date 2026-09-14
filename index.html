@@ -286,9 +286,8 @@
     let mevcutIsler = [];
     let aktifDurumFiltresi = "Tumu";
 
-    // Paketli Güncelleme Değişkenleri
     let topluGuncellenecekler = [];
-    let paketBoyutu = 40; // URL Limitine Takılmamak için 40'ar kalemlik paketler
+    let paketBoyutu = 40; 
     let mevcutPaketIndex = 0;
 
     function scriptTemizle() {
@@ -411,7 +410,6 @@
         }
     }
 
-    // Tedarikçi Excel Yükleme İşlemi (Paketli / Chunk Gönderim)
     function supplierExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -641,6 +639,7 @@
         kartlariEkranaBas();
     }
 
+    // GÜNCELLENMİŞ EXCEL İNDİRME FONKSİYONU
     function excelIndir() {
         if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
         
@@ -653,31 +652,46 @@
                 "Bakiye": is.ob,
                 "Sipariş Tarihi": formatTarihEkrana(is.sprstarihi),
                 "Bekleyen Gün": sprsGecenGunHesapla(is.sprstarihi),
-                "Teslim Tarihi": is.teslimtarihi,
+                "Teslim Tarihi": formatTarihEkrana(is.teslimtarihi), // Teslim Tarihi formatlandı (DD.MM.YYYY)
                 "Firma Durumu": is.firmadurumu,
                 "Üretilen Miktar": is.uretilendir_miktar,
                 "Yan Sanayi Notu": is.yansanayinotu
             };
         });
 
+        // 2. Sayfa Olarak Seçenekler Listesi (Liste Sayfası) Oluşturma
+        var workbook = XLSX.utils.book_new();
         var worksheet = XLSX.utils.json_to_sheet(excelData);
-        
+
+        var listSheetData = [
+            ["Durumlar"],
+            ["Bekliyor"],
+            ["Üretimde"],
+            ["Bitti"]
+        ];
+        var listSheet = XLSX.utils.aoa_to_sheet(listSheetData);
+        XLSX.utils.book_append_sheet(workbook, listSheet, "Secenekler");
+
+        // Firma Durumu (I Sütunu) için Açılır Liste Doğrulaması (Data Validation)
         var rangeCount = excelData.length + 1;
         worksheet['!dataValidation'] = [
             {
                 sqref: "I2:I" + rangeCount,
                 opts: {
                     type: "list",
-                    formula1: '"Bekliyor,Üretimde,Bitti"',
+                    formula1: "Secenekler!$A$2:$A$4", // İkinci sayfadaki seçeneklerden dinamik liste çeker
                     showDropDown: true,
-                    error: "Lütfen listeden geçerli bir durum seçin (Bekliyor, Üretimde, Bitti).",
-                    errorTitle: "Geçersiz Durum"
+                    error: "Lütfen seçeneği listeden seçin (Bekliyor, Üretimde, Bitti).",
+                    errorTitle: "Geçersiz Giriş"
                 }
             }
         ];
 
-        var workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "İş Listesi");
+        
+        // Çalışma kitabını varsayılan olarak İş Listesi sayfası açık gelecek şekilde ayarla
+        workbook.SheetNames = ["İş Listesi", "Secenekler"];
+        
         XLSX.writeFile(workbook, aktifFirma + "_Is_Listesi.xlsx");
     }
 
