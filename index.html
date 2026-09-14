@@ -279,7 +279,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbylgFOXrHKDetFbwqhkyYz42ZsqEES2ITByyIvAN3DfIs6nLYFNBK9tyMyTafgSH3kv/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwN3cH9-i6N5aYNdBmYRjOe_8Hm6hovwi7N4_h1k6o8VaRmePVUHlcsRsYY9uOwjdfz/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -499,7 +499,6 @@
         }
     }
 
-    // TÜM PAKETLER BİTTİĞİNDE TEK MAİL ATAN FONKSİYON
     function tekMailGonder(toplamAdet, callbackFn) {
         scriptTemizle();
         window.mailCallbackTamam = function(res) {
@@ -656,6 +655,7 @@
         kartlariEkranaBas();
     }
 
+    // GÜNCELLEŞTİRİLMİŞ EŞİTLENMİŞ EXCEL İNDİRME FONKSİYONU
     async function excelIndir() {
         if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
         
@@ -683,15 +683,18 @@
             ];
 
             mevcutIsler.forEach(is => {
+                var rawSprsTar = is.sprstarihi || is.sprsTarihi || "";
+                var rawTeslimTar = is.teslimtarihi || is.teslimTarihi || "";
+
                 worksheet.addRow({
                     id: is.id,
                     sprsno: is.sprsno,
                     ilgiliNo: is.ilgiliNo,
                     tanim: is.tanim,
                     ob: is.ob,
-                    sprstarihi: formatTarihEkrana(is.sprstarihi),
-                    gecenGun: sprsGecenGunHesapla(is.sprstarihi),
-                    teslimtarihi: formatTarihEkrana(is.teslimtarihi),
+                    sprstarihi: formatTarihEkrana(rawSprsTar),
+                    gecenGun: sprsGecenGunHesapla(rawSprsTar),
+                    teslimtarihi: formatTarihEkrana(rawTeslimTar),
                     firmadurumu: is.firmadurumu,
                     uretilendir_miktar: is.uretilendir_miktar,
                     yansanayinotu: is.yansanayinotu
