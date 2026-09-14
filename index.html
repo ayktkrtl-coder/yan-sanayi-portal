@@ -279,7 +279,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzCjfnlxr7dBgTDPef_ccsVUHcz3ZXGP1HDsT27CJjSdOtfMxk0j5EPm-48nqg-NhFL/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwbKiCa_s56sQju_UdlAhh66CZwE3pnk8WgIgdilVXcYW0GToD7UUb5AwriBSXHlXgI/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -302,20 +302,18 @@
         return str === "" ? "-" : str;
     }
 
-    // HER TÜRLÜ TARİH FORMATINI (YYYY-MM-DD, GG.AA.YYYY, ISO Vb.) HATASIZ ÇÖZEN FONKSİYON
+    // TARİH AYRIŞTIRICI (Sadece Teslim Tarihi İçin)
     function tarihAyristir(tarihStr) {
         if (!tarihStr || tarihStr === "-" || tarihStr === "undefined" || tarihStr === "") return null;
         try {
             var str = String(tarihStr).trim();
             if (str.includes("T")) str = str.split("T")[0];
 
-            // YYYY-MM-DD formatı
             if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
                 var p = str.split("-");
                 return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
             }
 
-            // GG.AA.YYYY veya GG/AA/YYYY formatı
             var sep = str.includes(".") ? "." : (str.includes("/") ? "/" : null);
             if (sep) {
                 var p2 = str.split(sep);
@@ -343,7 +341,6 @@
         return gun + "." + ay + "." + yil;
     }
 
-    // Input type="date" için kesin ISO formatı (YYYY-MM-DD) üreten fonksiyon
     function formatTarihInput(tarihStr) {
         var d = tarihAyristir(tarihStr);
         if (!d || isNaN(d.getTime())) return "";
@@ -351,21 +348,6 @@
         var ay = String(d.getMonth() + 1).padStart(2, '0');
         var yil = d.getFullYear();
         return yil + "-" + ay + "-" + gun;
-    }
-
-    function sprsGecenGunHesapla(tarihStr) {
-        var sprsTarihi = tarihAyristir(tarihStr);
-        if (!sprsTarihi) return "-";
-        
-        var bugun = new Date();
-        bugun.setHours(0,0,0,0);
-        sprsTarihi.setHours(0,0,0,0);
-        
-        var farkZaman = bugun.getTime() - sprsTarihi.getTime();
-        var farkGun = Math.floor(farkZaman / (1000 * 3600 * 24));
-        
-        if (farkGun <= 0) return "Bugün";
-        return farkGun + " Gün";
     }
 
     function girisYap() {
@@ -618,8 +600,6 @@
                 var fDurum = formatVeri(is.firmadurumu);
                 var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
-                var spTarihFormatli = formatTarihEkrana(is.sprstarihi);
-                var gecenGun = sprsGecenGunHesapla(is.sprstarihi);
                 
                 var teslimTarihInput = formatTarihInput(is.teslimtarihi);
                 var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
@@ -638,8 +618,6 @@
                             '<span class="info-pill">İlgili No: <b style="color:var(--primary);">' + ilgiliNo + '</b></span>' +
                         '</div>' +
                         '<div class="d-flex align-items-center gap-2">' +
-                            '<span style="font-size:11px; color:var(--text-muted);">Sprş Tar: ' + spTarihFormatli + '</span>' +
-                            '<span class="info-pill" style="background:#fff7ed; color:#c2410c; border-color:#ffedd5; font-weight:700;"><i class="fa-regular fa-clock"></i> ' + gecenGun + '</span>' +
                             '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + formatVeri(is.ob) + '</span>' +
                         '</div>' +
                     '</div>' +
@@ -700,8 +678,6 @@
                 { header: 'İlgili No', key: 'ilgiliNo', width: 14 },
                 { header: 'Tanım', key: 'tanim', width: 24 },
                 { header: 'Bakiye', key: 'ob', width: 10 },
-                { header: 'Sipariş Tarihi', key: 'sprstarihi', width: 14 },
-                { header: 'Bekleyen Gün', key: 'gecenGun', width: 14 },
                 { header: 'Teslim Tarihi', key: 'teslimtarihi', width: 14 },
                 { header: 'Firma Durumu', key: 'firmadurumu', width: 16 },
                 { header: 'Üretilen Miktar', key: 'uretilendir_miktar', width: 14 },
@@ -709,7 +685,6 @@
             ];
 
             mevcutIsler.forEach(is => {
-                var sTar = is.sprstarihi || "";
                 var tTar = is.teslimtarihi || "";
 
                 worksheet.addRow({
@@ -718,8 +693,6 @@
                     ilgiliNo: is.ilgiliNo,
                     tanim: is.tanim,
                     ob: is.ob,
-                    sprstarihi: formatTarihEkrana(sTar),
-                    gecenGun: sprsGecenGunHesapla(sTar),
                     teslimtarihi: formatTarihEkrana(tTar),
                     firmadurumu: is.firmadurumu,
                     uretilendir_miktar: is.uretilendir_miktar,
@@ -729,7 +702,7 @@
 
             const totalRows = mevcutIsler.length + 1;
             for (let i = 2; i <= totalRows; i++) {
-                const cell = worksheet.getCell(`I${i}`);
+                const cell = worksheet.getCell(`G${i}`);
                 cell.dataValidation = {
                     type: 'list',
                     allowBlank: true,
