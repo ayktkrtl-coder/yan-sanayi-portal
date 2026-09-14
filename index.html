@@ -60,7 +60,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwUy-JO1vzjm72G2yHQLAgN7CnlmdJQTCrmQI4ratS74Zy5kPk-cLTAvA7eNM1FVVB-/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwlE6amF4pPvPv7vSKs45KbMp3YtUqyItY2y77YhqIcxiWi65JIAONg1-j8whC_YHnv/exec"; 
 
     let aktifFirma = "";
     let mevcutIsler = [];
@@ -72,13 +72,19 @@
 
     function formatVeri(deger) {
         if (deger === undefined || deger === null) return "-";
+        return String(deger).trim();
+    }
+
+    // Tarihi GG.AA.YYYY formatında göstermek için yardımcı fonksiyon
+    function formatTarihEkrana(tarihStr) {
+        if (!tarihStr || tarihStr === "-") return "-";
         try {
-            var str = String(deger).trim();
-            if (str.includes("T") && str.includes("Z")) { 
-                return str.split("T")[0]; 
+            var parts = tarihStr.split("-");
+            if (parts.length === 3) {
+                return parts[2] + "." + parts[1] + "." + parts[0];
             }
-            return str;
-        } catch(e) { return "-"; }
+            return tarihStr;
+        } catch(e) { return tarihStr; }
     }
 
     function isleriListele() {
@@ -120,30 +126,34 @@
                 var fDurum = formatVeri(is.firmadurumu);
                 var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
+                var spTarihFormatli = formatTarihEkrana(is.sprstarihi);
+                var teslimTarihRaw = is.teslimtarihi && is.teslimtarihi !== "-" ? is.teslimtarihi : "";
+                var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
 
                 html += '<div class="card">' +
                     '<div class="d-flex justify-content-between">' +
                         '<div>' +
                             '<span class="badge" style="background-color: #27ae60;">' + fDurum + '</span>' +
                             '<h5 style="margin:4px 0; font-weight:700; color:#2c3e50;">' + formatVeri(is.tanim) + '</h5>' +
-                            '<small style="color:#6c757d;">Sipariş No: ' + formatVeri(is.sprsno) + ' | Satır No: ' + cardId + '</small>' +
+                            '<small style="color:#6c757d;">Sipariş No: <b>' + formatVeri(is.sprsno) + '</b> | Satır No: <b>' + cardId + '</b> | İlgili No: <b style="color:#0d6efd;">' + ilgiliNo + '</b></small>' +
                         '</div>' +
                         '<div style="text-align:right;">' +
                             '<small style="color:#6c757d; display:block;">Bakiye</small>' +
                             '<span style="font-size:20px; font-weight:bold; color:#0d6efd;">' + formatVeri(is.ob) + '</span>' +
                         '</div>' +
                     '</div>' +
+
                     '<div style="display:flex; gap:8px; margin:12px 0;">' +
                         '<div style="flex:1;"><div class="info-block"><b>Sp Tp:</b> ' + formatVeri(is.sptp) + '</div></div>' +
-                        '<div style="flex:1;"><div class="info-block"><b>Sprş Tarihi:</b> ' + formatVeri(is.sprstarihi) + '</div></div>' +
-                        '<div style="flex:1;"><div class="info-block"><b>Teslim Tarihi:</b> ' + formatVeri(is.teslimtarihi) + '</div></div>' +
+                        '<div style="flex:1;"><div class="info-block"><b>Sprş Tarihi:</b> ' + spTarihFormatli + '</div></div>' +
                     '</div>' +
+
                     '<div style="display:flex; gap:8px; align-items:flex-end; margin-top:12px; margin-bottom:12px;">' +
                         '<div style="flex:1;">' +
                             '<label style="font-size:12px; font-weight:bold; color:#555;">Firma Durumu</label>' +
                             '<select id="durum_' + cardId + '" class="form-select" style="margin-top:4px;">' +
                                 '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
-                                '<option value="Uretimde" ' + (fDurum=='Uretimde'?'selected':'') + '>Üretimde</option>' +
+                                '<option value="Uretimde" ' + (fDurum=='Uretimde' || fDurum=='Üretimde'?'selected':'') + '>Üretimde</option>' +
                                 '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
                             '</select>' +
                         '</div>' +
@@ -151,7 +161,12 @@
                             '<label style="font-size:12px; font-weight:bold; color:#555;">Üretilen Miktar</label>' +
                             '<input type="number" id="adet_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + miktar + '">' +
                         '</div>' +
+                        '<div style="flex:1;">' +
+                            '<label style="font-size:12px; font-weight:bold; color:#555;">Teslim Tarihi</label>' +
+                            '<input type="date" id="teslim_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" value="' + teslimTarihRaw + '">' +
+                        '</div>' +
                     '</div>' +
+
                     '<div style="margin-top:8px;">' +
                         '<label style="font-size:12px; font-weight:bold; color:#555;">Yan Sanayi Notu</label>' +
                         '<input type="text" id="not_' + cardId + '" class="form-control" style="margin-bottom:0; margin-top:4px;" placeholder="Not girin..." value="' + notIcerigi + '">' +
@@ -172,6 +187,7 @@
                 id: cardId,
                 durum: document.getElementById("durum_" + cardId).value,
                 adet: document.getElementById("adet_" + cardId).value,
+                teslimTarihi: document.getElementById("teslim_" + cardId).value,
                 not: document.getElementById("not_" + cardId).value
             });
         });
@@ -196,7 +212,7 @@
 
         if (res && res.status === "success") {
             alert("Güncellemeler başarıyla kaydedildi!");
-            isleriListele(); // Yeniden listele
+            isleriListele();
         } else {
             alert("Kayıt sırasında bir hata oluştu: " + (res.message || "Bilinmeyen hata"));
         }
