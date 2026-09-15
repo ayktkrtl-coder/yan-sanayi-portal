@@ -165,6 +165,39 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000;
         }
+
+        /* AKILLI ARAMA ÖNERİ LİSTESİ STİLLERİ */
+        .autocomplete-container {
+            position: relative;
+            flex: 1;
+            max-width: 260px;
+        }
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .autocomplete-items div {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-main);
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .autocomplete-items div:hover {
+            background-color: #f0f3ff;
+            color: var(--primary);
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -226,10 +259,13 @@
             </div>
             
             <div class="d-flex justify-content-between align-items-center gap-2" style="margin-top:8px;">
-                <div style="position:relative; flex:1; max-width:260px;">
-                    <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:10px; top:8px; color:var(--text-muted); font-size:11px;"></i>
-                    <input type="text" id="aramaKutusu" class="form-control" style="padding-left:28px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariFiltrele()">
+                <!-- AKILLI ARAMA KUTUSU VE ÖNERİ LİSTESİ -->
+                <div class="autocomplete-container">
+                    <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:10px; top:8px; color:var(--text-muted); font-size:11px; z-index:2;"></i>
+                    <input type="text" id="aramaKutusu" class="form-control" style="padding-left:28px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariFiltrele()" onclick="urunOnerileriGoster()" autocomplete="off">
+                    <div id="autocompleteList" class="autocomplete-items d-none"></div>
                 </div>
+
                 <div class="d-flex gap-2">
                     <button class="btn-filter active" onclick="durumFiltrele('Tumu', this)">Tümü</button>
                     <button class="btn-filter" onclick="durumFiltrele('Bekliyor', this)">Bekleyenler</button>
@@ -279,7 +315,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwbKiCa_s56sQju_UdlAhh66CZwE3pnk8WgIgdilVXcYW0GToD7UUb5AwriBSXHlXgI/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwNVTvu9ObzpsA2mAei-DNi6yY1TfNXB4eQUCbaHEFosCpsN-LiW-TSJTOy0c9_fgHC/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -302,7 +338,7 @@
         return str === "" ? "-" : str;
     }
 
-    // TARİH AYRIŞTIRICI (Sadece Teslim Tarihi İçin)
+    // TARİH AYRIŞTIRICI
     function tarihAyristir(tarihStr) {
         if (!tarihStr || tarihStr === "-" || tarihStr === "undefined" || tarihStr === "") return null;
         try {
@@ -646,12 +682,57 @@
         document.getElementById("isKartlari").innerHTML = html;
     }
 
+    // AKILLI ÜRÜN ÖNERİLERİ MANTIĞI
+    function urunOnerileriGoster() {
+        const listDiv = document.getElementById("autocompleteList");
+        const aramaVal = document.getElementById("aramaKutusu").value.toLowerCase();
+        
+        // Benzersiz tanım (ürün adı) listesini çıkar
+        let benzersizTanimlar = [...new Set(mevcutIsler.map(is => formatVeri(is.tanim)).filter(t => t !== "-"))];
+        
+        // Arama kutusuna yazılan ifadeye göre filtrele
+        if (aramaVal.trim() !== "") {
+            benzersizTanimlar = benzersizTanimlar.filter(t => t.toLowerCase().includes(aramaVal));
+        }
+
+        if (benzersizTanimlar.length === 0) {
+            listDiv.classList.add("d-none");
+            listDiv.innerHTML = "";
+            return;
+        }
+
+        let html = "";
+        benzersizTanimlar.forEach(tanim => {
+            html += `<div onclick="urunSec('${tanim}')">${tanim}</div>`;
+        });
+
+        listDiv.innerHTML = html;
+        listDiv.classList.remove("d-none");
+    }
+
+    function urunSec(tanim) {
+        document.getElementById("aramaKutusu").value = tanim;
+        document.getElementById("autocompleteList").classList.add("d-none");
+        kartlariFiltrele();
+    }
+
+    // Arama kutusunun dışına tıklandığında öneri listesini kapat
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest('.autocomplete-container')) {
+            const listDiv = document.getElementById("autocompleteList");
+            if (listDiv) listDiv.classList.add("d-none");
+        }
+    });
+
     function degisiklikVurgula(cardId) {
         const cardElem = document.getElementById("card_" + cardId);
         if (cardElem) cardElem.classList.add("modified");
     }
 
-    function kartlariFiltrele() { kartlariEkranaBas(); }
+    function kartlariFiltrele() { 
+        urunOnerileriGoster(); // Arama yapıldıkça önerileri de güncelle
+        kartlariEkranaBas(); 
+    }
     
     function durumFiltrele(durum, btnElem) {
         aktifDurumFiltresi = durum;
