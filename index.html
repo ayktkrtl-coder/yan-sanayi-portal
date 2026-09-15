@@ -166,7 +166,6 @@
             background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000;
         }
 
-        /* AKILLI ARAMA ÖNERİ LİSTESİ STİLLERİ */
         .autocomplete-container {
             position: relative;
             flex: 1;
@@ -259,7 +258,6 @@
             </div>
             
             <div class="d-flex justify-content-between align-items-center gap-2" style="margin-top:8px;">
-                <!-- AKILLI ARAMA KUTUSU VE ÖNERİ LİSTESİ -->
                 <div class="autocomplete-container">
                     <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:10px; top:8px; color:var(--text-muted); font-size:11px; z-index:2;"></i>
                     <input type="text" id="aramaKutusu" class="form-control" style="padding-left:28px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariFiltrele()" onclick="urunOnerileriGoster()" autocomplete="off">
@@ -338,7 +336,6 @@
         return str === "" ? "-" : str;
     }
 
-    // TARİH AYRIŞTIRICI
     function tarihAyristir(tarihStr) {
         if (!tarihStr || tarihStr === "-" || tarihStr === "undefined" || tarihStr === "") return null;
         try {
@@ -675,6 +672,11 @@
                         '<div style="flex:1;">' +
                             '<input type="text" id="not_' + cardId + '" class="form-control" placeholder="Not ekleyin..." value="' + notIcerigi + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
                         '</div>' +
+                        '<div>' +
+                            '<button onclick="tekliKaydet(\'' + cardId + '\')" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;" title="Bu Satırı Kaydet">' +
+                                '<i class="fa-solid fa-check"></i> Kaydet' +
+                            '</button>' +
+                        '</div>' +
                     '</div>' +
                 '</div>';
             });
@@ -682,15 +684,43 @@
         document.getElementById("isKartlari").innerHTML = html;
     }
 
-    // AKILLI ÜRÜN ÖNERİLERİ MANTIĞI
+    // TEKLİ SATIR KAYDETME FONKSİYONU
+    function tekliKaydet(cardId) {
+        var satirVerisi = [{
+            id: cardId,
+            durum: document.getElementById("durum_" + cardId).value,
+            adet: document.getElementById("adet_" + cardId).value,
+            teslimTarihi: document.getElementById("teslim_" + cardId).value,
+            not: document.getElementById("not_" + cardId).value
+        }];
+
+        scriptTemizle();
+        const payload = encodeURIComponent(JSON.stringify(satirVerisi));
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        
+        window.tekliKaydetGeriDonus = function(res) {
+            scriptTemizle();
+            if (res && res.status === "success") {
+                tekMailGonder(1, function() {
+                    alert("Satır başarıyla kaydedildi!");
+                    isleriListele(aktifFirma, girilenSifre);
+                });
+            } else {
+                alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
+            }
+        };
+
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=tekliKaydetGeriDonus";
+        document.body.appendChild(script);
+    }
+
     function urunOnerileriGoster() {
         const listDiv = document.getElementById("autocompleteList");
         const aramaVal = document.getElementById("aramaKutusu").value.toLowerCase();
         
-        // Benzersiz tanım (ürün adı) listesini çıkar
         let benzersizTanimlar = [...new Set(mevcutIsler.map(is => formatVeri(is.tanim)).filter(t => t !== "-"))];
         
-        // Arama kutusuna yazılan ifadeye göre filtrele
         if (aramaVal.trim() !== "") {
             benzersizTanimlar = benzersizTanimlar.filter(t => t.toLowerCase().includes(aramaVal));
         }
@@ -716,7 +746,6 @@
         kartlariFiltrele();
     }
 
-    // Arama kutusunun dışına tıklandığında öneri listesini kapat
     document.addEventListener("click", function (e) {
         if (!e.target.closest('.autocomplete-container')) {
             const listDiv = document.getElementById("autocompleteList");
@@ -730,7 +759,7 @@
     }
 
     function kartlariFiltrele() { 
-        urunOnerileriGoster(); // Arama yapıldıkça önerileri de güncelle
+        urunOnerileriGoster(); 
         kartlariEkranaBas(); 
     }
     
