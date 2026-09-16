@@ -479,11 +479,20 @@
                         if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
                     }
 
+                    // Bulunan orijinal kaydı eşleştir
+                    var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
+
                     topluGuncellenecekler.push({
                         id: String(satirNo),
                         ilgiliNo: String(ilgiliNo),
-                        durum: row["Firma Durumu"] || row["Durum"] || "Bekliyor",
-                        adet: row["Üretilen Miktar"] || row["Miktar"] || "0",
+                        sprsno: orijinal ? orijinal.sprsno : "-",
+                        tanim: orijinal ? orijinal.tanim : "-",
+                        eskiDurum: orijinal ? orijinal.firmadurumu : "-",
+                        yeniDurum: row["Firma Durumu"] || row["Durum"] || "Bekliyor",
+                        eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
+                        yeniMiktar: row["Üretilen Miktar"] || row["Miktar"] || "0",
+                        eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
+                        yeniTarih: formatTarihEkrana(tTarih),
                         teslimTarihi: tTarih,
                         not: row["Yan Sanayi Notu"] || row["Not"] || ""
                     });
@@ -507,8 +516,8 @@
         var baslangic = mevcutPaketIndex * paketBoyutu;
         
         if (baslangic >= toplam) {
-            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">E-posta bildirimi gönderiliyor...</p>';
-            tekMailGonder(toplam, function() {
+            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">Detaylı e-posta raporu gönderiliyor...</p>';
+            detayliMailGonder(topluGuncellenecekler, function() {
                 statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla güncellendi!</div>';
                 setTimeout(function() {
                     supplierExcelModalKapat();
@@ -542,7 +551,7 @@
         }
     }
 
-    function tekMailGonder(toplamAdet, callbackFn) {
+    function detayliMailGonder(detaylarDizi, callbackFn) {
         scriptTemizle();
         window.mailCallbackTamam = function(res) {
             scriptTemizle();
@@ -550,7 +559,8 @@
         };
         const script = document.createElement('script');
         script.className = 'jsonp-temp';
-        script.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&adet=" + toplamAdet + "&callback=mailCallbackTamam";
+        const payload = encodeURIComponent(JSON.stringify(detaylarDizi));
+        script.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailCallbackTamam";
         document.body.appendChild(script);
     }
 
@@ -689,26 +699,38 @@
     function tekliKaydet(cardId) {
         var cardElem = document.getElementById("card_" + cardId);
         var ilgiliNoVal = cardElem ? cardElem.getAttribute("data-ilgilino") : "";
+        var orijinal = mevcutIsler.find(x => x.id == String(cardId) || x.ilgiliNo == String(ilgiliNoVal));
 
-        var satirVerisi = [{
+        var yeniDurum = document.getElementById("durum_" + cardId).value;
+        var yeniMiktar = document.getElementById("adet_" + cardId).value;
+        var yeniTarihVal = document.getElementById("teslim_" + cardId).value;
+        var notVal = document.getElementById("not_" + cardId).value;
+
+        var detayObj = [{
             id: cardId,
             ilgiliNo: ilgiliNoVal,
-            durum: document.getElementById("durum_" + cardId).value,
-            adet: document.getElementById("adet_" + cardId).value,
-            teslimTarihi: document.getElementById("teslim_" + cardId).value,
-            not: document.getElementById("not_" + cardId).value
+            sprsno: orijinal ? orijinal.sprsno : "-",
+            tanim: orijinal ? orijinal.tanim : "-",
+            eskiDurum: orijinal ? orijinal.firmadurumu : "-",
+            yeniDurum: yeniDurum,
+            eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
+            yeniMiktar: yeniMiktar,
+            eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
+            yeniTarih: formatTarihEkrana(yeniTarihVal),
+            teslimTarihi: yeniTarihVal,
+            not: notVal
         }];
 
         scriptTemizle();
-        const payload = encodeURIComponent(JSON.stringify(satirVerisi));
+        const payload = encodeURIComponent(JSON.stringify(detayObj));
         const script = document.createElement('script');
         script.className = 'jsonp-temp';
         
         window.tekliKaydetGeriDonus = function(res) {
             scriptTemizle();
             if (res && res.status === "success") {
-                tekMailGonder(1, function() {
-                    alert("Satır başarıyla kaydedildi!");
+                detayliMailGonder(detayObj, function() {
+                    alert("Satır başarıyla kaydedildi ve detaylı rapor e-postası gönderildi!");
                     isleriListele(aktifFirma, girilenSifre);
                 });
             } else {
@@ -718,6 +740,93 @@
 
         script.src = API_URL + "?action=update&data=" + payload + "&callback=tekliKaydetGeriDonus";
         document.body.appendChild(script);
+    }
+
+    function topluKaydet() {
+        if (mevcutIsler.length === 0) return alert("Kaydedilecek veri yok.");
+        
+        let guncellenecekler = [];
+        const degisenKartlar = document.querySelectorAll('.card.modified');
+        
+        if (degisenKartlar.length === 0) {
+            return alert("Herhangi bir değişiklik yapmadınız.");
+        }
+
+        degisenKartlar.forEach(function(kart) {
+            var cardId = kart.id.replace('card_', '');
+            var ilgiliNoVal = kart.getAttribute("data-ilgilino") || "";
+            var orijinal = mevcutIsler.find(x => x.id == String(cardId) || x.ilgiliNo == String(ilgiliNoVal));
+
+            var yeniDurum = document.getElementById("durum_" + cardId).value;
+            var yeniMiktar = document.getElementById("adet_" + cardId).value;
+            var yeniTarihVal = document.getElementById("teslim_" + cardId).value;
+            var notVal = document.getElementById("not_" + cardId).value;
+            
+            guncellenecekler.push({
+                id: cardId,
+                ilgiliNo: ilgiliNoVal,
+                sprsno: orijinal ? orijinal.sprsno : "-",
+                tanim: orijinal ? orijinal.tanim : "-",
+                eskiDurum: orijinal ? orijinal.firmadurumu : "-",
+                yeniDurum: yeniDurum,
+                eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
+                yeniMiktar: yeniMiktar,
+                eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
+                yeniTarih: formatTarihEkrana(yeniTarihVal),
+                teslimTarihi: yeniTarihVal,
+                not: notVal
+            });
+        });
+
+        topluGuncellenecekler = guncellenecekler;
+        mevcutPaketIndex = 0;
+
+        const btn = document.getElementById("btnTopluKaydet");
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+        btn.disabled = true;
+
+        var baslangic = mevcutPaketIndex * paketBoyutu;
+        var bitis = Math.min(baslangic + paketBoyutu, topluGuncellenecekler.length);
+        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+
+        scriptTemizle();
+        const payload = encodeURIComponent(JSON.stringify(dilim));
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
+        document.body.appendChild(script);
+    }
+
+    function topluKaydetPaketGeriDonus(res) {
+        scriptTemizle();
+        if (res && res.status === "success") {
+            mevcutPaketIndex++;
+            var toplam = topluGuncellenecekler.length;
+            var baslangic = mevcutPaketIndex * paketBoyutu;
+            
+            if (baslangic >= toplam) {
+                detayliMailGonder(topluGuncellenecekler, function() {
+                    const btn = document.getElementById("btnTopluKaydet");
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+                    btn.disabled = false;
+                    alert("Güncellemeler başarıyla kaydedildi ve rapor e-postası gönderildi!");
+                    isleriListele(aktifFirma, girilenSifre);
+                });
+            } else {
+                var bitis = Math.min(baslangic + paketBoyutu, toplam);
+                var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+                const payload = encodeURIComponent(JSON.stringify(dilim));
+                const script = document.createElement('script');
+                script.className = 'jsonp-temp';
+                script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
+                document.body.appendChild(script);
+            }
+        } else {
+            const btn = document.getElementById("btnTopluKaydet");
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+            btn.disabled = false;
+            alert("Kayıt sırasında bir hata oluştu: " + (res.message || "Bilinmeyen hata"));
+        }
     }
 
     function urunOnerileriGoster() {
@@ -841,81 +950,6 @@
         } finally {
             btn.innerHTML = orjinalHtml;
             btn.disabled = false;
-        }
-    }
-
-    function topluKaydet() {
-        if (mevcutIsler.length === 0) return alert("Kaydedilecek veri yok.");
-        
-        let guncellenecekler = [];
-        const degisenKartlar = document.querySelectorAll('.card.modified');
-        
-        if (degisenKartlar.length === 0) {
-            return alert("Herhangi bir değişiklik yapmadınız.");
-        }
-
-        degisenKartlar.forEach(function(kart) {
-            var cardId = kart.id.replace('card_', '');
-            var ilgiliNoVal = kart.getAttribute("data-ilgilino") || "";
-            
-            guncellenecekler.push({
-                id: cardId,
-                ilgiliNo: ilgiliNoVal,
-                durum: document.getElementById("durum_" + cardId).value,
-                adet: document.getElementById("adet_" + cardId).value,
-                teslimTarihi: document.getElementById("teslim_" + cardId).value,
-                not: document.getElementById("not_" + cardId).value
-            });
-        });
-
-        topluGuncellenecekler = guncellenecekler;
-        mevcutPaketIndex = 0;
-
-        const btn = document.getElementById("btnTopluKaydet");
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
-        btn.disabled = true;
-
-        var baslangic = mevcutPaketIndex * paketBoyutu;
-        var bitis = Math.min(baslangic + paketBoyutu, topluGuncellenecekler.length);
-        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
-
-        scriptTemizle();
-        const payload = encodeURIComponent(JSON.stringify(dilim));
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
-        document.body.appendChild(script);
-    }
-
-    function topluKaydetPaketGeriDonus(res) {
-        scriptTemizle();
-        if (res && res.status === "success") {
-            mevcutPaketIndex++;
-            var toplam = topluGuncellenecekler.length;
-            var baslangic = mevcutPaketIndex * paketBoyutu;
-            
-            if (baslangic >= toplam) {
-                tekMailGonder(toplam, function() {
-                    const btn = document.getElementById("btnTopluKaydet");
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-                    btn.disabled = false;
-                    alert("Güncellemeler başarıyla kaydedildi!");
-                    isleriListele(aktifFirma, girilenSifre);
-                });
-            } else {
-                var bitis = Math.min(baslangic + paketBoyutu, toplam);
-                var dilim = topluGuncellenecekler.slice(baslangic, bitis);
-                const payload = encodeURIComponent(JSON.stringify(dilim));
-                const script = document.createElement('script');
-                script.className = 'jsonp-temp';
-                script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
-                document.body.appendChild(script);
-            }
-        } else {
-            const btn = document.getElementById("btnTopluKaydet");
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-            btn.disabled = false;
-            alert("Kayıt sırasında bir hata oluştu: " + (res.message || "Bilinmeyen hata"));
         }
     }
 </script>
