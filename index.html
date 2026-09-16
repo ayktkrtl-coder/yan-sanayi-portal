@@ -313,7 +313,8 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwbKiCa_s56sQju_UdlAhh66CZwE3pnk8WgIgdilVXcYW0GToD7UUb5AwriBSXHlXgI/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwbKiCa_s56sQju_UdlAhh66CZwE3pnk8WgIgdilVXcYW0GToD7UUb5AwriBSXHlXgI/exec
+"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -471,6 +472,7 @@
 
             jsonData.forEach(row => {
                 var satirNo = row["Satır No"] || row["Satir No"] || row["ID"];
+                var ilgiliNo = row["İlgili Numarası"] || row["İlgili No"] || row["Il_No"] || "";
                 if (satirNo) {
                     var tTarih = row["Teslim Tarihi"] || row["Teslimtarihi"] || "";
                     if (tTarih && String(tTarih).includes(".")) {
@@ -480,6 +482,7 @@
 
                     topluGuncellenecekler.push({
                         id: String(satirNo),
+                        ilgiliNo: String(ilgiliNo),
                         durum: row["Firma Durumu"] || row["Durum"] || "Bekliyor",
                         adet: row["Üretilen Miktar"] || row["Miktar"] || "0",
                         teslimTarihi: tTarih,
@@ -641,7 +644,7 @@
                 if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
                 if(fDurum === "Bitti") badgeClass = "badge-bitti";
 
-                html += '<div class="card" id="card_' + cardId + '">' +
+                html += '<div class="card" id="card_' + cardId + '" data-ilgilino="' + ilgiliNo + '">' +
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center gap-2">' +
                             '<span class="badge ' + badgeClass + '">' + fDurum + '</span>' +
@@ -684,10 +687,13 @@
         document.getElementById("isKartlari").innerHTML = html;
     }
 
-    // TEKLİ SATIR KAYDETME FONKSİYONU
     function tekliKaydet(cardId) {
+        var cardElem = document.getElementById("card_" + cardId);
+        var ilgiliNoVal = cardElem ? cardElem.getAttribute("data-ilgilino") : "";
+
         var satirVerisi = [{
             id: cardId,
+            ilgiliNo: ilgiliNoVal,
             durum: document.getElementById("durum_" + cardId).value,
             adet: document.getElementById("adet_" + cardId).value,
             teslimTarihi: document.getElementById("teslim_" + cardId).value,
@@ -784,8 +790,8 @@
 
             worksheet.columns = [
                 { header: 'Satır No', key: 'id', width: 10 },
+                { header: 'İlgili Numarası', key: 'ilgiliNo', width: 14 },
                 { header: 'Sipariş No', key: 'sprsno', width: 12 },
-                { header: 'İlgili No', key: 'ilgiliNo', width: 14 },
                 { header: 'Tanım', key: 'tanim', width: 24 },
                 { header: 'Bakiye', key: 'ob', width: 10 },
                 { header: 'Teslim Tarihi', key: 'teslimtarihi', width: 14 },
@@ -799,8 +805,8 @@
 
                 worksheet.addRow({
                     id: is.id,
-                    sprsno: is.sprsno,
                     ilgiliNo: is.ilgiliNo,
+                    sprsno: is.sprsno,
                     tanim: is.tanim,
                     ob: is.ob,
                     teslimtarihi: formatTarihEkrana(tTar),
@@ -851,8 +857,11 @@
 
         degisenKartlar.forEach(function(kart) {
             var cardId = kart.id.replace('card_', '');
+            var ilgiliNoVal = kart.getAttribute("data-ilgilino") || "";
+            
             guncellenecekler.push({
                 id: cardId,
+                ilgiliNo: ilgiliNoVal,
                 durum: document.getElementById("durum_" + cardId).value,
                 adet: document.getElementById("adet_" + cardId).value,
                 teslimTarihi: document.getElementById("teslim_" + cardId).value,
