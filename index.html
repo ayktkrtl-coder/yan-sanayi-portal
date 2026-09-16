@@ -313,7 +313,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwbKiCa_s56sQju_UdlAhh66CZwE3pnk8WgIgdilVXcYW0GToD7UUb5AwriBSXHlXgI/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwNVTvu9ObzpsA2mAei-DNi6yY1TfNXB4eQUCbaHEFosCpsN-LiW-TSJTOy0c9_fgHC/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -432,7 +432,7 @@
         var p2 = document.getElementById("newPass2").value.trim();
 
         if(!p1 || !p2) return alert("Şifre alanlarını doldurun.");
-        if(p1 !== p2) return alert("Şifreler uyuşmuyor!");
+        if(p1 !== p2) return alert("Şifler uyuşmuyor!");
 
         scriptTemizle();
         const script = document.createElement('script');
@@ -479,7 +479,6 @@
                         if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
                     }
 
-                    // Bulunan orijinal kaydı eşleştir
                     var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
 
                     topluGuncellenecekler.push({
@@ -656,7 +655,7 @@
                 html += '<div class="card" id="card_' + cardId + '" data-ilgilino="' + ilgiliNo + '">' +
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center gap-2">' +
-                            '<span class="badge ' + badgeClass + '">' + fDurum + '</span>' +
+                            '<span class="badge ' + badgeClass + '" id="badge_' + cardId + '">' + fDurum + '</span>' +
                             '<strong style="color:var(--text-main); font-size:14px;">' + formatVeri(is.tanim) + '</strong>' +
                             '<span class="info-pill">Sp Tp: <b>' + formatVeri(is.sptp) + '</b></span>' +
                             '<span class="info-pill">Sp No: <b>' + formatVeri(is.sprsno) + '</b></span>' +
@@ -669,7 +668,7 @@
 
                     '<div class="d-flex gap-2 align-items-center" style="margin-top:6px;">' +
                         '<div style="width:130px;">' +
-                            '<select id="durum_' + cardId + '" class="form-select" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
+                            '<select id="durum_' + cardId + '" class="form-select" onchange="durumDegisti(\'' + cardId + '\')">' +
                                 '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
                                 '<option value="Uretimde" ' + (fDurum=='Uretimde' || fDurum=='Üretimde'?'selected':'') + '>Üretimde</option>' +
                                 '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
@@ -694,6 +693,20 @@
             });
         }
         document.getElementById("isKartlari").innerHTML = html;
+    }
+
+    function durumDegisti(cardId) {
+        degisiklikVurgula(cardId);
+        var secilenDurum = document.getElementById("durum_" + cardId).value;
+        var badgeElem = document.getElementById("badge_" + cardId);
+        
+        if(badgeElem) {
+            badgeElem.innerText = secilenDurum;
+            badgeElem.className = "badge"; 
+            if(secilenDurum === "Bekliyor") badgeElem.classList.add("badge-bekliyor");
+            else if(secilenDurum === "Uretimde" || secilenDurum === "Üretimde") badgeElem.classList.add("badge-uretimde");
+            else if(secilenDurum === "Bitti") badgeElem.classList.add("badge-bitti");
+        }
     }
 
     function tekliKaydet(cardId) {
@@ -729,6 +742,14 @@
         window.tekliKaydetGeriDonus = function(res) {
             scriptTemizle();
             if (res && res.status === "success") {
+                // Bellekteki veriyi anında güncelle (Sayfa yeniden yüklenmeden filtreler doğru çalışsın)
+                if(orijinal) {
+                    orijinal.firmadurumu = yeniDurum;
+                    orijinal.uretilendir_miktar = yeniMiktar;
+                    orijinal.teslimtarihi = yeniTarihVal;
+                    orijinal.yansanayinotu = notVal;
+                }
+
                 detayliMailGonder(detayObj, function() {
                     alert("Satır başarıyla kaydedildi ve detaylı rapor e-postası gönderildi!");
                     isleriListele(aktifFirma, girilenSifre);
@@ -762,6 +783,14 @@
             var yeniTarihVal = document.getElementById("teslim_" + cardId).value;
             var notVal = document.getElementById("not_" + cardId).value;
             
+            // Belleği anında güncelle
+            if(orijinal) {
+                orijinal.firmadurumu = yeniDurum;
+                orijinal.uretilendir_miktar = yeniMiktar;
+                orijinal.teslimtarihi = yeniTarihVal;
+                orijinal.yansanayinotu = notVal;
+            }
+
             guncellenecekler.push({
                 id: cardId,
                 ilgiliNo: ilgiliNoVal,
