@@ -306,7 +306,7 @@
             </div>
             <div id="supplierUploadStatus" style="margin-top:12px; text-align:center; font-size:13px;"></div>
             
-            <!-- Mail Tercih Butonları (Başlangıçta Gizli) -->
+            <!-- Mail Tercih Butonları -->
             <div id="mailActionButtons" class="d-none" style="margin-top:16px;">
                 <p style="font-size:13px; font-weight:600; color:var(--success); text-align:center; margin-bottom:10px;">
                     <i class="fa-solid fa-circle-check"></i> Veriler başarıyla kaydedildi!
@@ -471,7 +471,16 @@
         }
     }
 
-    // EXCEL YÜKLEME VE ANINDA KAYDETME (MAİL BEKLEMEDEN)
+    // AKILLI DURUM ÇEVİRİCİ FONKSİYON
+    function durumDonustur(hamDurum) {
+        if (!hamDurum) return "Bekliyor";
+        let d = String(hamDurum).toLowerCase().trim();
+        if (d.includes("teslim") || d.includes("bitti") || d.includes("tamam")) return "Bitti";
+        if (d.includes("hazır") || d.includes("işlem") || d.includes("üretim") || d.includes("devam")) return "Uretimde";
+        return "Bekliyor";
+    }
+
+    // EXCEL YÜKLEME VE AKILLI EŞLEŞTİRME
     function supplierExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -494,7 +503,7 @@
                 jsonData.forEach(row => {
                     let satirNo = null;
                     let ilgiliNo = "";
-                    let yeniDurum = "Bekliyor";
+                    let hamDurum = "Bekliyor";
                     let yeniMiktar = "0";
                     let tTarih = "";
                     let notVal = "";
@@ -503,22 +512,25 @@
                         let k = key.toLowerCase().trim();
                         if (k.includes("satır no") || k.includes("satir no") || k === "id") satirNo = row[key];
                         if (k.includes("ilgili no") || k.includes("ilgili numarası") || k.includes("il_no")) ilgiliNo = row[key];
-                        if (k.includes("durum")) yeniDurum = row[key];
+                        if (k.includes("durum")) hamDurum = row[key];
                         if (k.includes("miktar") || k.includes("üretilen")) yeniMiktar = row[key];
                         if (k.includes("tarih")) tTarih = row[key];
                         if (k.includes("not")) notVal = row[key];
                     }
 
+                    // Ham durumu standart sistem durumuna dönüştür
+                    let yeniDurum = durumDonustur(hamDurum);
+
                     if (satirNo) {
                         if (tTarih && String(tTarih).includes(".")) {
-                            var p = String(tTarih).split(".");
+                            var p = String(tarihStr).split(".");
                             if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
                         }
 
                         var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
 
                         if(orijinal) {
-                            orijinal.firmadurumu = String(yeniDurum || "Bekliyor");
+                            orijinal.firmadurumu = yeniDurum;
                             orijinal.uretilendir_miktar = String(yeniMiktar || "0");
                             orijinal.teslimtarihi = tTarih;
                             orijinal.yansanayinotu = String(notVal || "");
@@ -530,7 +542,7 @@
                             sprsno: orijinal ? orijinal.sprsno : "-",
                             tanim: orijinal ? orijinal.tanim : "-",
                             eskiDurum: orijinal ? orijinal.firmadurumu : "-",
-                            yeniDurum: String(yeniDurum || "Bekliyor"),
+                            yeniDurum: yeniDurum,
                             eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
                             yeniMiktar: String(yeniMiktar || "0"),
                             eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
@@ -545,7 +557,7 @@
                 });
 
                 if (topluGuncellenecekler.length === 0) {
-                    statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı! Lütfen "Excel İndir" ile indirdiğiniz şablonu kullanın.</div>';
+                    statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı! Lütfen "Satır No" veya "İlgili Numarası" sütunlarının dolu olduğundan emin olun.</div>';
                     return;
                 }
 
@@ -565,7 +577,6 @@
         var baslangic = mevcutPaketIndex * paketBoyutu;
         
         if (baslangic >= toplam) {
-            // KAYIT BİTTİ: Mail Gönder/Gönderme butonlarını göster
             statusDiv.innerHTML = "";
             document.getElementById("dropZoneContainer").classList.add("d-none");
             document.getElementById("modalKapatContainer").classList.add("d-none");
