@@ -480,7 +480,7 @@
         return "Bekliyor";
     }
 
-    // EXCEL YÜKLEME VE AKILLI EŞLEŞTİRME
+    // EXCEL YÜKLEME VE PAKETLEYEREK KAYDETME
     function supplierExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -518,12 +518,11 @@
                         if (k.includes("not")) notVal = row[key];
                     }
 
-                    // Ham durumu standart sistem durumuna dönüştür
                     let yeniDurum = durumDonustur(hamDurum);
 
                     if (satirNo) {
                         if (tTarih && String(tTarih).includes(".")) {
-                            var p = String(tarihStr).split(".");
+                            var p = String(tTarih).split(".");
                             if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
                         }
 
