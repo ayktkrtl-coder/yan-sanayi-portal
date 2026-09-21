@@ -432,7 +432,7 @@
         var p2 = document.getElementById("newPass2").value.trim();
 
         if(!p1 || !p2) return alert("Şifre alanlarını doldurun.");
-        if(p1 !== p2) return alert("Şifler uyuşmuyor!");
+        if(p1 !== p2) return alert("Şifreler uyuşmuyor!");
 
         scriptTemizle();
         const script = document.createElement('script');
@@ -461,50 +461,69 @@
 
         const reader = new FileReader();
         reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
-            topluGuncellenecekler = [];
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                topluGuncellenecekler = [];
 
-            jsonData.forEach(row => {
-                var satirNo = row["Satır No"] || row["Satir No"] || row["ID"];
-                var ilgiliNo = row["İlgili Numarası"] || row["İlgili No"] || row["Il_No"] || "";
-                if (satirNo) {
-                    var tTarih = row["Teslim Tarihi"] || row["Teslimtarihi"] || "";
-                    if (tTarih && String(tTarih).includes(".")) {
-                        var p = String(tTarih).split(".");
-                        if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
+                jsonData.forEach(row => {
+                    let satirNo = null;
+                    let ilgiliNo = "";
+                    let yeniDurum = "Bekliyor";
+                    let yeniMiktar = "0";
+                    let tTarih = "";
+                    let notVal = "";
+
+                    for (let key in row) {
+                        let k = key.toLowerCase().trim();
+                        if (k.includes("satır no") || k.includes("satir no") || k === "id") satirNo = row[key];
+                        if (k.includes("ilgili no") || k.includes("ilgili numarası") || k.includes("il_no")) ilgiliNo = row[key];
+                        if (k.includes("durum")) yeniDurum = row[key];
+                        if (k.includes("miktar") || k.includes("üretilen")) yeniMiktar = row[key];
+                        if (k.includes("tarih")) tTarih = row[key];
+                        if (k.includes("not")) notVal = row[key];
                     }
 
-                    var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
+                    if (satirNo) {
+                        if (tTarih && String(tTarih).includes(".")) {
+                            var p = String(tTarih).split(".");
+                            if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
+                        }
 
-                    topluGuncellenecekler.push({
-                        id: String(satirNo),
-                        ilgiliNo: String(ilgiliNo),
-                        sprsno: orijinal ? orijinal.sprsno : "-",
-                        tanim: orijinal ? orijinal.tanim : "-",
-                        eskiDurum: orijinal ? orijinal.firmadurumu : "-",
-                        yeniDurum: row["Firma Durumu"] || row["Durum"] || "Bekliyor",
-                        eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
-                        yeniMiktar: row["Üretilen Miktar"] || row["Miktar"] || "0",
-                        eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
-                        yeniTarih: formatTarihEkrana(tTarih),
-                        teslimTarihi: tTarih,
-                        not: row["Yan Sanayi Notu"] || row["Not"] || ""
-                    });
+                        var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
+
+                        topluGuncellenecekler.push({
+                            id: String(satirNo),
+                            ilgiliNo: String(ilgiliNo || (orijinal ? orijinal.ilgiliNo : "")),
+                            sprsno: orijinal ? orijinal.sprsno : "-",
+                            tanim: orijinal ? orijinal.tanim : "-",
+                            eskiDurum: orijinal ? orijinal.firmadurumu : "-",
+                            yeniDurum: String(yeniDurum || "Bekliyor"),
+                            eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
+                            yeniMiktar: String(yeniMiktar || "0"),
+                            eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
+                            yeniTarih: formatTarihEkrana(tTarih),
+                            teslimTarihi: tTarih,
+                            not: String(notVal || "")
+                        });
+                    }
+                });
+
+                if (topluGuncellenecekler.length === 0) {
+                    statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı! Lütfen "Excel İndir" ile indirdiğiniz şablonu kullanın.</div>';
+                    return;
                 }
-            });
 
-            if (topluGuncellenecekler.length === 0) {
-                statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı.</div>';
-                return;
+                mevcutPaketIndex = 0;
+                sonrakiPaketiGonder();
+
+            } catch (err) {
+                statusDiv.innerHTML = '<div style="color:var(--danger);">Dosya okunurken hata: ' + err.message + '</div>';
             }
-
-            mevcutPaketIndex = 0;
-            sonrakiPaketiGonder();
         };
         reader.readAsArrayBuffer(file);
     }
@@ -539,15 +558,35 @@
         document.body.appendChild(script);
     }
 
+    // PAKET DÖNÜŞÜ GÜVENLİ HALE GETİRİLDİ (TAKILMA ÖNLENDİ)
     function supplierPaketGeriDonus(res) {
         scriptTemizle();
         if (res && res.status === "success") {
+            // Bellekteki verileri anında güncelle
+            var baslangic = mevcutPaketIndex * paketBoyutu;
+            var bitis = Math.min(baslangic + paketBoyutu, topluGuncellenecekler.length);
+            var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+            
+            dilimforEachSafe(dilim, function(item) {
+                var orijinal = mevcutIsler.find(x => x.id == item.id || x.ilgiliNo == item.ilgiliNo);
+                if (orijinal) {
+                    orijinal.firmadurumu = item.yeniDurum;
+                    orijinal.uretilendir_miktar = item.yeniMiktar;
+                    orijinal.teslimtarihi = item.teslimTarihi;
+                    orijinal.yansanayinotu = item.not;
+                }
+            });
+
             mevcutPaketIndex++;
             sonrakiPaketiGonder();
         } else {
             const statusDiv = document.getElementById("supplierUploadStatus");
-            statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Hata oluştu! ' + (res.message || "") + '</div>';
+            statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Hata oluştu! ' + (res ? res.message : "Sunucu yanıt vermedi") + '</div>';
         }
+    }
+
+    function dilimforEachSafe(arr, fn) {
+        for(let i=0; i<arr.length; i++) { fn(arr[i]); }
     }
 
     function detayliMailGonder(detaylarDizi, callbackFn) {
@@ -742,7 +781,6 @@
         window.tekliKaydetGeriDonus = function(res) {
             scriptTemizle();
             if (res && res.status === "success") {
-                // Bellekteki veriyi anında güncelle (Sayfa yeniden yüklenmeden filtreler doğru çalışsın)
                 if(orijinal) {
                     orijinal.firmadurumu = yeniDurum;
                     orijinal.uretilendir_miktar = yeniMiktar;
@@ -783,7 +821,6 @@
             var yeniTarihVal = document.getElementById("teslim_" + cardId).value;
             var notVal = document.getElementById("not_" + cardId).value;
             
-            // Belleği anında güncelle
             if(orijinal) {
                 orijinal.firmadurumu = yeniDurum;
                 orijinal.uretilendir_miktar = yeniMiktar;
