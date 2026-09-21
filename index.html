@@ -321,10 +321,6 @@
     let mevcutIsler = [];
     let aktifDurumFiltresi = "Tumu";
 
-    let topluGuncellenecekler = [];
-    let paketBoyutu = 40; 
-    let mevcutPaketIndex = 0;
-
     function scriptTemizle() {
         const tempScripts = document.querySelectorAll('.jsonp-temp');
         tempScripts.forEach(s => s.remove());
@@ -452,12 +448,13 @@
         }
     }
 
+    // TEK SEFERDE VE GÜVENLİ TOPLU EXCEL GÜNCELLEME (TEK İSTEK)
     function supplierExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
 
         const statusDiv = document.getElementById("supplierUploadStatus");
-        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Excel ayrıştırılıyor...</p>';
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Excel okunuyor ve güncelleniyor...</p>';
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -468,7 +465,7 @@
                 const worksheet = workbook.Sheets[firstSheetName];
                 
                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                topluGuncellenecekler = [];
+                let guncellenecekler = [];
 
                 jsonData.forEach(row => {
                     let satirNo = null;
@@ -496,7 +493,14 @@
 
                         var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
 
-                        topluGuncellenecekler.push({
+                        if(orijinal) {
+                            orijinal.firmadurumu = String(yeniDurum || "Bekliyor");
+                            orijinal.uretilendir_miktar = String(yeniMiktar || "0");
+                            orijinal.teslimtarihi = tTarih;
+                            orijinal.yansanayinotu = String(notVal || "");
+                        }
+
+                        guncellenecekler.push({
                             id: String(satirNo),
                             ilgiliNo: String(ilgiliNo || (orijinal ? orijinal.ilgiliNo : "")),
                             sprsno: orijinal ? orijinal.sprsno : "-",
@@ -513,93 +517,48 @@
                     }
                 });
 
-                if (topluGuncellenecekler.length === 0) {
+                if (guncellenecekler.length === 0) {
                     statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı! Lütfen "Excel İndir" ile indirdiğiniz şablonu kullanın.</div>';
                     return;
                 }
 
-                mevcutPaketIndex = 0;
-                sonrakiPaketiGonder();
+                statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Veriler kaydediliyor ve e-posta raporu gönderiliyor...</p>';
+
+                // TEK SEFERDE GÖNDERME VE SONUÇ BEKLEME
+                scriptTemizle();
+                const payload = encodeURIComponent(JSON.stringify(guncellenecekler));
+                const script = document.createElement('script');
+                script.className = 'jsonp-temp';
+                
+                window.topluExcelGeriDonus = function(res) {
+                    scriptTemizle();
+                    if (res && res.status === "success") {
+                        // Mail gönderimini tetikle
+                        const mailScript = document.createElement('script');
+                        mailScript.className = 'jsonp-temp';
+                        window.mailGeriDonus = function(mRes) {
+                            scriptTemizle();
+                            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Tüm işlemler başarıyla tamamlandı!</div>';
+                            setTimeout(function() {
+                                supplierExcelModalKapat();
+                                isleriListele(aktifFirma, girilenSifre);
+                            }, 1200);
+                        };
+                        mailScript.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailGeriDonus";
+                        document.body.appendChild(mailScript);
+                    } else {
+                        statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Kayıt hatası: ' + (res.message || "Bilinmeyen hata") + '</div>';
+                    }
+                };
+
+                script.src = API_URL + "?action=update&data=" + payload + "&callback=topluExcelGeriDonus";
+                document.body.appendChild(script);
 
             } catch (err) {
                 statusDiv.innerHTML = '<div style="color:var(--danger);">Dosya okunurken hata: ' + err.message + '</div>';
             }
         };
         reader.readAsArrayBuffer(file);
-    }
-
-    function sonrakiPaketiGonder() {
-        const statusDiv = document.getElementById("supplierUploadStatus");
-        var toplam = topluGuncellenecekler.length;
-        var baslangic = mevcutPaketIndex * paketBoyutu;
-        
-        if (baslangic >= toplam) {
-            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">Detaylı e-posta raporu gönderiliyor...</p>';
-            detayliMailGonder(topluGuncellenecekler, function() {
-                statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla güncellendi!</div>';
-                setTimeout(function() {
-                    supplierExcelModalKapat();
-                    isleriListele(aktifFirma, girilenSifre);
-                }, 1200);
-            });
-            return;
-        }
-
-        var bitis = Math.min(baslangic + paketBoyutu, toplam);
-        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
-
-        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">' + bitis + ' / ' + toplam + ' kalem güncelleniyor...</p>';
-
-        scriptTemizle();
-        const payload = encodeURIComponent(JSON.stringify(dilim));
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        script.src = API_URL + "?action=update&data=" + payload + "&callback=supplierPaketGeriDonus";
-        document.body.appendChild(script);
-    }
-
-    // PAKET DÖNÜŞÜ GÜVENLİ HALE GETİRİLDİ (TAKILMA ÖNLENDİ)
-    function supplierPaketGeriDonus(res) {
-        scriptTemizle();
-        if (res && res.status === "success") {
-            // Bellekteki verileri anında güncelle
-            var baslangic = mevcutPaketIndex * paketBoyutu;
-            var bitis = Math.min(baslangic + paketBoyutu, topluGuncellenecekler.length);
-            var dilim = topluGuncellenecekler.slice(baslangic, bitis);
-            
-            dilimforEachSafe(dilim, function(item) {
-                var orijinal = mevcutIsler.find(x => x.id == item.id || x.ilgiliNo == item.ilgiliNo);
-                if (orijinal) {
-                    orijinal.firmadurumu = item.yeniDurum;
-                    orijinal.uretilendir_miktar = item.yeniMiktar;
-                    orijinal.teslimtarihi = item.teslimTarihi;
-                    orijinal.yansanayinotu = item.not;
-                }
-            });
-
-            mevcutPaketIndex++;
-            sonrakiPaketiGonder();
-        } else {
-            const statusDiv = document.getElementById("supplierUploadStatus");
-            statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Hata oluştu! ' + (res ? res.message : "Sunucu yanıt vermedi") + '</div>';
-        }
-    }
-
-    function dilimforEachSafe(arr, fn) {
-        for(let i=0; i<arr.length; i++) { fn(arr[i]); }
-    }
-
-    function detayliMailGonder(detaylarDizi, callbackFn) {
-        scriptTemizle();
-        window.mailCallbackTamam = function(res) {
-            scriptTemizle();
-            if (callbackFn) callbackFn();
-        };
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        const payload = encodeURIComponent(JSON.stringify(detaylarDizi));
-        script.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailCallbackTamam";
-        document.body.appendChild(script);
     }
 
     function jdeExcelYukle(event) {
@@ -788,10 +747,16 @@
                     orijinal.yansanayinotu = notVal;
                 }
 
-                detayliMailGonder(detayObj, function() {
+                // Mail gönderimi
+                const mailScript = document.createElement('script');
+                mailScript.className = 'jsonp-temp';
+                window.mailGeriDonus = function(mRes) {
+                    scriptTemizle();
                     alert("Satır başarıyla kaydedildi ve detaylı rapor e-postası gönderildi!");
                     isleriListele(aktifFirma, girilenSifre);
-                });
+                };
+                mailScript.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailGeriDonus";
+                document.body.appendChild(mailScript);
             } else {
                 alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
             }
@@ -844,55 +809,38 @@
             });
         });
 
-        topluGuncellenecekler = guncellenecekler;
-        mevcutPaketIndex = 0;
-
         const btn = document.getElementById("btnTopluKaydet");
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
         btn.disabled = true;
 
-        var baslangic = mevcutPaketIndex * paketBoyutu;
-        var bitis = Math.min(baslangic + paketBoyutu, topluGuncellenecekler.length);
-        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
-
         scriptTemizle();
-        const payload = encodeURIComponent(JSON.stringify(dilim));
+        const payload = encodeURIComponent(JSON.stringify(guncellenecekler));
         const script = document.createElement('script');
         script.className = 'jsonp-temp';
-        script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
-        document.body.appendChild(script);
-    }
-
-    function topluKaydetPaketGeriDonus(res) {
-        scriptTemizle();
-        if (res && res.status === "success") {
-            mevcutPaketIndex++;
-            var toplam = topluGuncellenecekler.length;
-            var baslangic = mevcutPaketIndex * paketBoyutu;
-            
-            if (baslangic >= toplam) {
-                detayliMailGonder(topluGuncellenecekler, function() {
-                    const btn = document.getElementById("btnTopluKaydet");
+        
+        window.topluKaydetGeriDonus = function(res) {
+            scriptTemizle();
+            if (res && res.status === "success") {
+                const mailScript = document.createElement('script');
+                mailScript.className = 'jsonp-temp';
+                window.mailGeriDonus = function(mRes) {
+                    scriptTemizle();
                     btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
                     btn.disabled = false;
                     alert("Güncellemeler başarıyla kaydedildi ve rapor e-postası gönderildi!");
                     isleriListele(aktifFirma, girilenSifre);
-                });
+                };
+                mailScript.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailGeriDonus";
+                document.body.appendChild(mailScript);
             } else {
-                var bitis = Math.min(baslangic + paketBoyutu, toplam);
-                var dilim = topluGuncellenecekler.slice(baslangic, bitis);
-                const payload = encodeURIComponent(JSON.stringify(dilim));
-                const script = document.createElement('script');
-                script.className = 'jsonp-temp';
-                script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
-                document.body.appendChild(script);
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+                btn.disabled = false;
+                alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
             }
-        } else {
-            const btn = document.getElementById("btnTopluKaydet");
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-            btn.disabled = false;
-            alert("Kayıt sırasında bir hata oluştu: " + (res.message || "Bilinmeyen hata"));
-        }
+        };
+
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetGeriDonus";
+        document.body.appendChild(script);
     }
 
     function urunOnerileriGoster() {
@@ -1012,7 +960,7 @@
             URL.revokeObjectURL(link.href);
 
         } catch (err) {
-            alert("Excel oluşturulurken bir hata oluştu: " + err.message);
+            alert("Excel yüklenirken veya oluşturulurken hata: " + err.message);
         } finally {
             btn.innerHTML = orjinalHtml;
             btn.disabled = false;
