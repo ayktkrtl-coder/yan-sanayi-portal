@@ -306,17 +306,6 @@
             </div>
             <div id="supplierUploadStatus" style="margin-top:12px; text-align:center; font-size:13px;"></div>
             
-            <!-- Mail Tercih Butonları -->
-            <div id="mailActionButtons" class="d-none" style="margin-top:16px;">
-                <p style="font-size:13px; font-weight:600; color:var(--success); text-align:center; margin-bottom:10px;">
-                    <i class="fa-solid fa-circle-check"></i> Veriler başarıyla kaydedildi!
-                </p>
-                <div class="d-flex gap-2">
-                    <button onclick="mailGonderVeKapat()" class="btn btn-primary" style="flex:1;"><i class="fa-solid fa-envelope"></i> E-posta Gönder & Kapat</button>
-                    <button onclick="supplierExcelModalKapat()" class="btn btn-danger" style="flex:1;"><i class="fa-solid fa-xmark"></i> Gönderme / Kapat</button>
-                </div>
-            </div>
-
             <div style="margin-top:16px; text-align:right;" id="modalKapatContainer">
                 <button onclick="supplierExcelModalKapat()" class="btn btn-danger" id="btnModalKapat">Kapat</button>
             </div>
@@ -336,7 +325,6 @@
     let topluGuncellenecekler = [];
     let paketBoyutu = 25; 
     let mevcutPaketIndex = 0;
-    let globalDetaylarListesi = [];
 
     function scriptTemizle() {
         const tempScripts = document.querySelectorAll('.jsonp-temp');
@@ -436,7 +424,6 @@
     function supplierExcelModalAc() { 
         document.getElementById("supplierUploadStatus").innerHTML = "";
         document.getElementById("supplierFileInput").value = "";
-        document.getElementById("mailActionButtons").classList.add("d-none");
         document.getElementById("dropZoneContainer").classList.remove("d-none");
         document.getElementById("modalKapatContainer").classList.remove("d-none");
         document.getElementById("supplierExcelModal").classList.remove("d-none"); 
@@ -471,7 +458,6 @@
         }
     }
 
-    // AKILLI DURUM ÇEVİRİCİ FONKSİYON
     function durumDonustur(hamDurum) {
         if (!hamDurum) return "Bekliyor";
         let d = String(hamDurum).toLowerCase().trim();
@@ -480,7 +466,7 @@
         return "Bekliyor";
     }
 
-    // EXCEL YÜKLEME VE PAKETLEYEREK KAYDETME
+    // EXCEL YÜKLEME VE DOĞRUDAN KAYDETME (MAİL TAMAMEN KALDIRILDI)
     function supplierExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -498,7 +484,6 @@
                 
                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
                 topluGuncellenecekler = [];
-                globalDetaylarListesi = [];
 
                 jsonData.forEach(row => {
                     let satirNo = null;
@@ -528,14 +513,7 @@
 
                         var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
 
-                        if(orijinal) {
-                            orijinal.firmadurumu = yeniDurum;
-                            orijinal.uretilendir_miktar = String(yeniMiktar || "0");
-                            orijinal.teslimtarihi = tTarih;
-                            orijinal.yansanayinotu = String(notVal || "");
-                        }
-
-                        var paketObj = {
+                        topluGuncellenecekler.push({
                             id: String(satirNo),
                             ilgiliNo: String(ilgiliNo || (orijinal ? orijinal.ilgiliNo : "")),
                             sprsno: orijinal ? orijinal.sprsno : "-",
@@ -548,15 +526,12 @@
                             yeniTarih: formatTarihEkrana(tTarih),
                             teslimTarihi: tTarih,
                             not: String(notVal || "")
-                        };
-
-                        topluGuncellenecekler.push(paketObj);
-                        globalDetaylarListesi.push(paketObj);
+                        });
                     }
                 });
 
                 if (topluGuncellenecekler.length === 0) {
-                    statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı! Lütfen "Satır No" veya "İlgili Numarası" sütunlarının dolu olduğundan emin olun.</div>';
+                    statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı! Lütfen sütun adlarını kontrol edin.</div>';
                     return;
                 }
 
@@ -576,10 +551,10 @@
         var baslangic = mevcutPaketIndex * paketBoyutu;
         
         if (baslangic >= toplam) {
-            statusDiv.innerHTML = "";
-            document.getElementById("dropZoneContainer").classList.add("d-none");
-            document.getElementById("modalKapatContainer").classList.add("d-none");
-            document.getElementById("mailActionButtons").classList.remove("d-none");
+            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Tüm veriler başarıyla kaydedildi!</div>';
+            setTimeout(function() {
+                supplierExcelModalKapat();
+            }, 1200);
             return;
         }
 
@@ -604,24 +579,6 @@
         };
 
         script.src = API_URL + "?action=update&data=" + payload + "&callback=excelPaketGeriDonus";
-        document.body.appendChild(script);
-    }
-
-    function mailGonderVeKapat() {
-        const mailDiv = document.getElementById("supplierUploadStatus");
-        mailDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">E-posta raporu gönderiliyor...</p>';
-        document.getElementById("mailActionButtons").classList.add("d-none");
-
-        scriptTemizle();
-        window.mailCallbackTamam = function(res) {
-            scriptTemizle();
-            alert("E-posta raporu başarıyla gönderildi!");
-            supplierExcelModalKapat();
-        };
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        const payload = encodeURIComponent(JSON.stringify(globalDetaylarListesi));
-        script.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailCallbackTamam";
         document.body.appendChild(script);
     }
 
@@ -810,16 +767,8 @@
                     orijinal.teslimtarihi = yeniTarihVal;
                     orijinal.yansanayinotu = notVal;
                 }
-
-                const mailScript = document.createElement('script');
-                mailScript.className = 'jsonp-temp';
-                window.mailGeriDonus = function(mRes) {
-                    scriptTemizle();
-                    alert("Satır başarıyla kaydedildi ve detaylı rapor e-postası gönderildi!");
-                    isleriListele(aktifFirma, girilenSifre);
-                };
-                mailScript.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailGeriDonus";
-                document.body.appendChild(mailScript);
+                alert("Satır başarıyla kaydedildi!");
+                isleriListele(aktifFirma, girilenSifre);
             } else {
                 alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
             }
@@ -883,21 +832,12 @@
         
         window.topluKaydetGeriDonus = function(res) {
             scriptTemizle();
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+            btn.disabled = false;
             if (res && res.status === "success") {
-                const mailScript = document.createElement('script');
-                mailScript.className = 'jsonp-temp';
-                window.mailGeriDonus = function(mRes) {
-                    scriptTemizle();
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-                    btn.disabled = false;
-                    alert("Güncellemeler başarıyla kaydedildi ve rapor e-postası gönderildi!");
-                    isleriListele(aktifFirma, girilenSifre);
-                };
-                mailScript.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailGeriDonus";
-                document.body.appendChild(mailScript);
+                alert("Güncellemeler başarıyla kaydedildi!");
+                isleriListele(aktifFirma, girilenSifre);
             } else {
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-                btn.disabled = false;
                 alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
             }
         };
