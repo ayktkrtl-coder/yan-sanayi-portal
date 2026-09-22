@@ -138,10 +138,11 @@
                 <h4 style="margin:8px 0 2px 0;">Portal Girişi</h4>
             </div>
             <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Tedarikçi Adı veya Yetkili Kodu:</label>
-            <input type="text" id="firmaAdi" class="form-control" style="margin-bottom:8px;" placeholder="Firma adınızı veya ADMIN yazın...">
+            <input type="text" id="firmaAdi" class="form-control" style="margin-bottom:8px;" placeholder="Firma adınızı veya ADMIN yazın..." autocomplete="off">
             
             <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Giriş Şifresi:</label>
-            <input type="password" id="firmaPass" class="form-control" style="margin-bottom:12px;" placeholder="Şifreniz...">
+            <!-- Şifre uyarısını engellemek için type text yapıldı ve CSS ile gizlendi -->
+            <input type="text" id="firmaPass" class="form-control" style="margin-bottom:12px; -webkit-text-security: disc;" placeholder="Şifreniz..." autocomplete="new-password" spellcheck="false">
 
             <button onclick="girisYap()" id="btnListele" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
         </div>
@@ -201,9 +202,9 @@
         <div class="card" style="width:340px; padding:20px; border-left:none;">
             <h4 style="margin:0 0 12px 0; color:var(--primary);"><i class="fa-solid fa-key"></i> Şifre Değiştir</h4>
             <label style="font-size:12px; font-weight:600;">Yeni Şifreniz:</label>
-            <input type="password" id="newPass1" class="form-control" style="margin-bottom:8px;" placeholder="Yeni Şifre">
+            <input type="text" id="newPass1" class="form-control" style="margin-bottom:8px; -webkit-text-security: disc;" placeholder="Yeni Şifre" autocomplete="new-password" spellcheck="false">
             <label style="font-size:12px; font-weight:600;">Yeni Şifre (Tekrar):</label>
-            <input type="password" id="newPass2" class="form-control" style="margin-bottom:12px;" placeholder="Tekrar">
+            <input type="text" id="newPass2" class="form-control" style="margin-bottom:12px; -webkit-text-security: disc;" placeholder="Tekrar" autocomplete="new-password" spellcheck="false">
             <div class="d-flex gap-2">
                 <button onclick="sifreGuncelle()" class="btn btn-success" style="flex:1;">Kaydet</button>
                 <button onclick="sifreModalKapat()" class="btn btn-danger" style="flex:1;">İptal</button>
@@ -229,7 +230,8 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwGmdsiZQO3Vr1yPjftyp1FjZUgm_MoVygw4GwcFI6HhW_yplRuzFZDyutPcg-kAVfm/exec";
+    // Sizin ilettiğiniz en güncel API adresiniz eklendi.
+    const API_URL = "https://script.google.com/macros/s/AKfycbyM9OHWyqfxX1SZZAN3XXKbDdVQhFVHKCUI0uoBBlKPpDQPlcuuKkfPFnt4I9-vOljT/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -311,6 +313,8 @@
             alert("Şifreniz başarıyla değiştirildi!");
             sifreModalKapat();
             girilenSifre = p1;
+            document.getElementById("newPass1").value = "";
+            document.getElementById("newPass2").value = "";
         } else {
             alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
         }
