@@ -26,8 +26,7 @@
         body { 
             background-color: var(--bg); 
             font-family: 'Inter', -apple-system, sans-serif; 
-            margin: 0; 
-            padding: 0; 
+            margin: 0; padding: 0; 
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
         }
@@ -39,8 +38,7 @@
             border-radius: 8px; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
             border: 1px solid var(--border-color);
-            margin-bottom: 8px; 
-            padding: 10px 14px; 
+            margin-bottom: 8px; padding: 10px 14px; 
             border-left: 4px solid var(--primary); 
             transition: all 0.15s ease;
         }
@@ -52,35 +50,20 @@
         }
 
         .form-control, .form-select { 
-            display: block; 
-            width: 100%; 
-            padding: 5px 8px; 
-            font-size: 13px; 
-            font-family: inherit;
-            color: var(--text-main);
-            background-color: #fff;
-            border: 1px solid var(--border-color); 
-            border-radius: 6px; 
-            transition: border-color 0.15s ease;
+            display: block; width: 100%; padding: 5px 8px; 
+            font-size: 13px; font-family: inherit;
+            color: var(--text-main); background-color: #fff;
+            border: 1px solid var(--border-color); border-radius: 6px; 
         }
         .form-control:focus, .form-select:focus {
-            outline: none;
-            border-color: var(--primary);
+            outline: none; border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
         }
 
         .btn { 
-            display: inline-flex; 
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-weight: 600; 
-            padding: 7px 14px; 
-            font-size: 13px; 
-            border-radius: 6px; 
-            border: none; 
-            cursor: pointer; 
-            color: #fff; 
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 6px; font-weight: 600; padding: 7px 14px; font-size: 13px; 
+            border-radius: 6px; border: none; cursor: pointer; color: #fff; 
             transition: all 0.15s ease;
         }
         .btn:hover { opacity: 0.95; }
@@ -92,14 +75,9 @@
         .btn-info { background-color: #0284c7; }
         
         .btn-filter { 
-            background-color: #f1f5f9; 
-            color: var(--text-muted); 
-            padding: 5px 12px; 
-            font-size: 12px; 
-            font-weight: 600; 
-            border-radius: 16px; 
-            border: 1px solid var(--border-color); 
-            cursor: pointer; 
+            background-color: #f1f5f9; color: var(--text-muted); 
+            padding: 5px 12px; font-size: 12px; font-weight: 600; 
+            border-radius: 16px; border: 1px solid var(--border-color); cursor: pointer; 
         }
         .btn-filter.active { background-color: var(--primary); color: #fff; border-color: var(--primary); }
 
@@ -110,92 +88,39 @@
         .gap-2 { gap: 8px !important; }
         
         .badge { 
-            display: inline-block; 
-            padding: 2px 6px; 
-            font-size: 10px; 
-            font-weight: 700; 
-            border-radius: 4px; 
-            text-transform: uppercase;
+            display: inline-block; padding: 2px 6px; font-size: 10px; 
+            font-weight: 700; border-radius: 4px; text-transform: uppercase;
         }
         .badge-bekliyor { background-color: #fef3c7; color: #d97706; }
         .badge-uretimde { background-color: #dbeafe; color: #2563eb; }
         .badge-bitti { background-color: #d1fae5; color: #059669; }
 
         .info-pill {
-            background-color: #f1f5f9;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            color: var(--text-muted);
-            border: 1px solid #e2e8f0;
+            background-color: #f1f5f9; padding: 2px 8px; border-radius: 4px;
+            font-size: 11px; color: var(--text-muted); border: 1px solid #e2e8f0;
         }
 
         .sticky-top-panel { 
-            position: sticky; 
-            top: 0; 
-            background: rgba(248, 250, 252, 0.95); 
-            backdrop-filter: blur(8px);
-            z-index: 1000; 
-            padding: 10px 0; 
-            border-bottom: 1px solid var(--border-color); 
-            margin-bottom: 12px;
+            position: sticky; top: 0; background: rgba(248, 250, 252, 0.95); 
+            backdrop-filter: blur(8px); z-index: 1000; padding: 10px 0; 
+            border-bottom: 1px solid var(--border-color); margin-bottom: 12px;
         }
 
         .spinner { 
-            border: 3px solid rgba(79, 70, 229, 0.1); 
-            width: 28px; 
-            height: 28px; 
-            border-radius: 50%; 
-            border-left-color: var(--primary); 
-            animation: spin 0.8s linear infinite; 
-            margin: 20px auto; 
+            border: 3px solid rgba(79, 70, 229, 0.1); width: 28px; height: 28px; 
+            border-radius: 50%; border-left-color: var(--primary); 
+            animation: spin 0.8s linear infinite; margin: 20px auto; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .drop-zone {
-            border: 2px dashed var(--primary);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            background-color: #f0f3ff;
-            cursor: pointer;
+            border: 2px dashed var(--primary); border-radius: 8px; padding: 20px;
+            text-align: center; background-color: #f0f3ff; cursor: pointer;
         }
         
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000;
-        }
-
-        .autocomplete-container {
-            position: relative;
-            flex: 1;
-            max-width: 260px;
-        }
-        .autocomplete-items {
-            position: absolute;
-            border: 1px solid var(--border-color);
-            border-top: none;
-            z-index: 99;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background-color: #fff;
-            max-height: 200px;
-            overflow-y: auto;
-            border-radius: 0 0 6px 6px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        .autocomplete-items div {
-            padding: 8px 12px;
-            cursor: pointer;
-            font-size: 12px;
-            color: var(--text-main);
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .autocomplete-items div:hover {
-            background-color: #f0f3ff;
-            color: var(--primary);
-            font-weight: 500;
         }
     </style>
 </head>
@@ -258,12 +183,7 @@
             </div>
             
             <div class="d-flex justify-content-between align-items-center gap-2" style="margin-top:8px;">
-                <div class="autocomplete-container">
-                    <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:10px; top:8px; color:var(--text-muted); font-size:11px; z-index:2;"></i>
-                    <input type="text" id="aramaKutusu" class="form-control" style="padding-left:28px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariFiltrele()" onclick="urunOnerileriGoster()" autocomplete="off">
-                    <div id="autocompleteList" class="autocomplete-items d-none"></div>
-                </div>
-
+                <input type="text" id="aramaKutusu" class="form-control" style="max-width:300px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariEkranaBas()">
                 <div class="d-flex gap-2">
                     <button class="btn-filter active" onclick="durumFiltrele('Tumu', this)">Tümü</button>
                     <button class="btn-filter" onclick="durumFiltrele('Bekliyor', this)">Bekleyenler</button>
@@ -291,30 +211,25 @@
         </div>
     </div>
 
-    <!-- Tedarikçi Toplu Excel Yükleme Modal -->
+    <!-- Toplu Excel Yükleme Modal -->
     <div id="supplierExcelModal" class="modal d-none">
         <div class="card" style="width:440px; padding:24px; border-left:none;">
             <h4 style="margin:0 0 8px 0; color:var(--primary);"><i class="fa-solid fa-file-import"></i> Toplu Excel Güncelleme</h4>
-            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">
-                "Excel İndir" butonuyla indirdiğiniz dosyayı bilgisayarınızda düzenledikten sonra buraya yükleyin.
-            </p>
-            <div class="drop-zone" id="dropZoneContainer" onclick="document.getElementById('supplierFileInput').click()">
+            <div class="drop-zone" onclick="document.getElementById('supplierFileInput').click()">
                 <i class="fa-solid fa-file-excel" style="font-size:36px; color:#059669; margin-bottom:8px;"></i>
-                <h5 style="margin:0 0 4px 0;">Güncellenmiş Excel Dosyasını Bırakın</h5>
-                <small style="color:var(--text-muted);">Veya seçmek için tıklayın (.xlsx / .csv)</small>
+                <h5 style="margin:0 0 4px 0;">Güncellenmiş Excel Dosyasını Seçin</h5>
                 <input type="file" id="supplierFileInput" class="d-none" accept=".xlsx, .xls, .csv" onchange="supplierExcelYukle(event)">
             </div>
             <div id="supplierUploadStatus" style="margin-top:12px; text-align:center; font-size:13px;"></div>
-            
-            <div style="margin-top:16px; text-align:right;" id="modalKapatContainer">
-                <button onclick="supplierExcelModalKapat()" class="btn btn-danger" id="btnModalKapat">Kapat</button>
+            <div style="margin-top:16px; text-align:right;">
+                <button onclick="supplierExcelModalKapat()" class="btn btn-danger">Kapat</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwTccDEHcCEoGegYD5BKndcRS0FIVuMLJ2ANNZUSHiE12UoaNifC9m6n8TVQO_jop_V/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbw3_zppoqWSs8yefc67iJAjA8PIAcEQX_662N6cGZSgf6j1BVJ3D4kU8D0m3zzmCuFV/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -322,76 +237,27 @@
     let mevcutIsler = [];
     let aktifDurumFiltresi = "Tumu";
 
-    let topluGuncellenecekler = [];
-    let paketBoyutu = 25; 
-    let mevcutPaketIndex = 0;
-
-    function scriptTemizle() {
-        const tempScripts = document.querySelectorAll('.jsonp-temp');
-        tempScripts.forEach(s => s.remove());
-    }
-
-    function formatVeri(deger) {
-        if (deger === undefined || deger === null) return "-";
-        var str = String(deger).trim();
-        return str === "" ? "-" : str;
-    }
-
-    function tarihAyristir(tarihStr) {
-        if (!tarihStr || tarihStr === "-" || tarihStr === "undefined" || tarihStr === "") return null;
+    async function apiIstek(payload) {
         try {
-            var str = String(tarihStr).trim();
-            if (str.includes("T")) str = str.split("T")[0];
-
-            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-                var p = str.split("-");
-                return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
-            }
-
-            var sep = str.includes(".") ? "." : (str.includes("/") ? "/" : null);
-            if (sep) {
-                var p2 = str.split(sep);
-                if (p2.length === 3) {
-                    var gun = parseInt(p2[0]);
-                    var ay = parseInt(p2[1]) - 1;
-                    var yil = parseInt(p2[2]);
-                    if (yil < 100) yil += 2000;
-                    return new Date(yil, ay, gun);
-                }
-            }
-            
-            var d = new Date(str);
-            if (!isNaN(d.getTime())) return d;
-            return null;
-        } catch(e) { return null; }
+            const response = await fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            return await response.json();
+        } catch (err) {
+            console.error("API Hatası:", err);
+            return { status: "error", message: err.message };
+        }
     }
 
-    function formatTarihEkrana(tarihStr) {
-        var d = tarihAyristir(tarihStr);
-        if (!d) return "-";
-        var gun = String(d.getDate()).padStart(2, '0');
-        var ay = String(d.getMonth() + 1).padStart(2, '0');
-        var yil = d.getFullYear();
-        return gun + "." + ay + "." + yil;
-    }
-
-    function formatTarihInput(tarihStr) {
-        var d = tarihAyristir(tarihStr);
-        if (!d || isNaN(d.getTime())) return "";
-        var gun = String(d.getDate()).padStart(2, '0');
-        var ay = String(d.getMonth() + 1).padStart(2, '0');
-        var yil = d.getFullYear();
-        return yil + "-" + ay + "-" + gun;
-    }
-
-    function girisYap() {
-        var inputVal = document.getElementById("firmaAdi").value.trim();
+    async function girisYap() {
+        aktifFirma = document.getElementById("firmaAdi").value.trim();
         girilenSifre = document.getElementById("firmaPass").value.trim();
 
-        if(!inputVal) return alert("Lütfen firma adınızı girin.");
+        if(!aktifFirma) return alert("Lütfen firma adınızı girin.");
         if(!girilenSifre) return alert("Lütfen şifrenizi girin.");
 
-        if(inputVal.toUpperCase() === "ADMIN") {
+        if(aktifFirma.toUpperCase() === "ADMIN") {
             if(girilenSifre === ADMIN_SIFRE) {
                 document.getElementById("loginSection").classList.add("d-none");
                 document.getElementById("headerSection").classList.add("d-none");
@@ -400,23 +266,26 @@
                 alert("Hatalı yönetici şifresi!");
             }
         } else {
-            isleriListele(inputVal, girilenSifre);
+            await isleriListele();
         }
     }
 
-    function isleriListele(firma, sifre) {
-        aktifFirma = firma;
+    async function isleriListele() {
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
-        document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Yükleniyor...</p></div>';
+        document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Veriler yükleniyor...</p></div>';
 
-        scriptTemizle();
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&sifre=" + encodeURIComponent(sifre) + "&callback=veriGeriDonusIsle";
-        document.body.appendChild(script); 
+        const res = await apiIstek({ action: "read", firma: aktifFirma, sifre: girilenSifre });
+        
+        if (Array.isArray(res)) {
+            mevcutIsler = res;
+            kartlariEkranaBas();
+        } else {
+            alert("Veriler yüklenirken hata oluştu: " + (res.message || "Bilinmeyen hata"));
+            location.reload();
+        }
     }
 
     function sifreModalAc() { document.getElementById("sifreModal").classList.remove("d-none"); }
@@ -424,213 +293,44 @@
     function supplierExcelModalAc() { 
         document.getElementById("supplierUploadStatus").innerHTML = "";
         document.getElementById("supplierFileInput").value = "";
-        document.getElementById("dropZoneContainer").classList.remove("d-none");
-        document.getElementById("modalKapatContainer").classList.remove("d-none");
         document.getElementById("supplierExcelModal").classList.remove("d-none"); 
     }
     function supplierExcelModalKapat() { 
         document.getElementById("supplierExcelModal").classList.add("d-none");
-        isleriListele(aktifFirma, girilenSifre);
+        isleriListele();
     }
 
-    function sifreGuncelle() {
+    async function sifreGuncelle() {
         var p1 = document.getElementById("newPass1").value.trim();
         var p2 = document.getElementById("newPass2").value.trim();
-
         if(!p1 || !p2) return alert("Şifre alanlarını doldurun.");
         if(p1 !== p2) return alert("Şifreler uyuşmuyor!");
 
-        scriptTemizle();
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        script.src = API_URL + "?action=changePassword&firma=" + encodeURIComponent(aktifFirma) + "&yeniSifre=" + encodeURIComponent(p1) + "&callback=sifreSonuc";
-        document.body.appendChild(script);
-    }
-
-    function sifreSonuc(res) {
-        scriptTemizle();
+        const res = await apiIstek({ action: "changePassword", firma: aktifFirma, yeniSifre: p1 });
         if(res && res.status === "success") {
             alert("Şifreniz başarıyla değiştirildi!");
             sifreModalKapat();
-            girilenSifre = document.getElementById("newPass1").value.trim();
+            girilenSifre = p1;
         } else {
             alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
         }
     }
 
-    function durumDonustur(hamDurum) {
-        if (!hamDurum) return "Bekliyor";
-        let d = String(hamDurum).toLowerCase().trim();
-        if (d.includes("teslim") || d.includes("bitti") || d.includes("tamam")) return "Bitti";
-        if (d.includes("hazır") || d.includes("işlem") || d.includes("üretim") || d.includes("devam")) return "Uretimde";
-        return "Bekliyor";
+    function formatVeri(deger) {
+        if (deger === undefined || deger === null) return "-";
+        var str = String(deger).trim();
+        return str === "" ? "-" : str;
     }
 
-    // TOPLU EXCEL YÜKLEME (DOĞRUDAN SATIR ID EŞLEŞTİRMELİ)
-    function supplierExcelYukle(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const statusDiv = document.getElementById("supplierUploadStatus");
-        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Excel ayrıştırılıyor...</p>';
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                topluGuncellenecekler = [];
-
-                jsonData.forEach(row => {
-                    let satirNo = null;
-                    let ilgiliNo = "";
-                    let hamDurum = "Bekliyor";
-                    let yeniMiktar = "0";
-                    let tTarih = "";
-                    let notVal = "";
-
-                    for (let key in row) {
-                        let k = key.toLowerCase().trim();
-                        if (k.includes("satır no") || k.includes("satir no") || k === "id") satirNo = row[key];
-                        if (k.includes("ilgili no") || k.includes("ilgili numarası") || k.includes("il_no")) ilgiliNo = row[key];
-                        if (k.includes("durum")) hamDurum = row[key];
-                        if (k.includes("miktar") || k.includes("üretilen")) yeniMiktar = row[key];
-                        if (k.includes("tarih")) tTarih = row[key];
-                        if (k.includes("not")) notVal = row[key];
-                    }
-
-                    let yeniDurum = durumDonustur(hamDurum);
-
-                    if (satirNo) {
-                        if (tTarih && String(tTarih).includes(".")) {
-                            var p = String(tTarih).split(".");
-                            if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
-                        }
-
-                        var orijinal = mevcutIsler.find(x => String(x.id) === String(satirNo));
-
-                        topluGuncellenecekler.push({
-                            id: String(satirNo),
-                            ilgiliNo: String(ilgiliNo || (orijinal ? orijinal.ilgiliNo : "")),
-                            sprsno: orijinal ? orijinal.sprsno : "-",
-                            tanim: orijinal ? orijinal.tanim : "-",
-                            eskiDurum: orijinal ? orijinal.firmadurumu : "-",
-                            yeniDurum: yeniDurum,
-                            eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
-                            yeniMiktar: String(yeniMiktar || "0"),
-                            eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
-                            yeniTarih: formatTarihEkrana(tTarih),
-                            teslimTarihi: tTarih,
-                            not: String(notVal || "")
-                        });
-                    }
-                });
-
-                if (topluGuncellenecekler.length === 0) {
-                    statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı! Lütfen sütun adlarını kontrol edin.</div>';
-                    return;
-                }
-
-                mevcutPaketIndex = 0;
-                sonrakiExcelPaketiniGonder();
-
-            } catch (err) {
-                statusDiv.innerHTML = '<div style="color:var(--danger);">Dosya okunurken hata: ' + err.message + '</div>';
+    function formatTarihInput(tarihStr) {
+        if (!tarihStr) return "";
+        try {
+            var d = new Date(tarihStr);
+            if (!isNaN(d.getTime())) {
+                return d.toISOString().split("T")[0];
             }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function sonrakiExcelPaketiniGonder() {
-        const statusDiv = document.getElementById("supplierUploadStatus");
-        var toplam = topluGuncellenecekler.length;
-        var baslangic = mevcutPaketIndex * paketBoyutu;
-        
-        if (baslangic >= toplam) {
-            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Tüm veriler başarıyla kaydedildi!</div>';
-            setTimeout(function() {
-                supplierExcelModalKapat();
-            }, 1200);
-            return;
-        }
-
-        var bitis = Math.min(baslangic + paketBoyutu, toplam);
-        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
-
-        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">' + bitis + ' / ' + toplam + ' kalem kaydediliyor...</p>';
-
-        scriptTemizle();
-        const payload = encodeURIComponent(JSON.stringify(dilim));
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        
-        window.excelPaketGeriDonus = function(res) {
-            scriptTemizle();
-            if (res && res.status === "success") {
-                mevcutPaketIndex++;
-                sonrakiExcelPaketiniGonder();
-            } else {
-                statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Kayıt hatası: ' + (res.message || "Bilinmeyen hata") + '</div>';
-            }
-        };
-
-        script.src = API_URL + "?action=update&data=" + payload + "&callback=excelPaketGeriDonus";
-        document.body.appendChild(script);
-    }
-
-    function jdeExcelYukle(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const statusDiv = document.getElementById("uploadStatus");
-        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Güncelleniyor...</p>';
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-            if (jsonData.length > 0) jsonData.shift();
-
-            scriptTemizle();
-            const payload = encodeURIComponent(JSON.stringify(jsonData));
-            const script = document.createElement('script');
-            script.className = 'jsonp-temp';
-            script.src = API_URL + "?action=upload&excelData=" + payload + "&callback=uploadTamamlandi";
-            document.body.appendChild(script);
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function uploadTamamlandi(res) {
-        scriptTemizle();
-        const statusDiv = document.getElementById("uploadStatus");
-        if (res && res.status === "success") {
-            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Güncellendi!</div>';
-            alert("Google Sheets JDE verileriyle güncellendi!");
-        } else {
-            statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Hata!</div>';
-            alert("Hata: " + (res.message || "Bilinmeyen hata"));
-        }
-    }
-
-    function veriGeriDonusIsle(data) {
-        scriptTemizle();
-        if (data.error) {
-            alert("Erişim Engellendi: " + data.error);
-            location.reload();
-            return;
-        }
-
-        mevcutIsler = data;
-        kartlariEkranaBas();
+        } catch(e) {}
+        return "";
     }
 
     function kartlariEkranaBas() {
@@ -644,26 +344,23 @@
                 formatVeri(is.tanim).toLowerCase().includes(aramaMetni) ||
                 formatVeri(is.ilgiliNo).toLowerCase().includes(aramaMetni)
             );
-            
             var durumUyum = true;
             if (aktifDurumFiltresi === "Bekliyor") durumUyum = (fDurum === "Bekliyor");
             else if (aktifDurumFiltresi === "Uretimde") durumUyum = (fDurum === "Uretimde" || fDurum === "Üretimde");
             else if (aktifDurumFiltresi === "Bitti") durumUyum = (fDurum === "Bitti");
-
             return aramaUyum && durumUyum;
         });
 
         document.getElementById("totalCount").innerText = "(" + filtrelenmis.length + " / " + mevcutIsler.length + " Kalem)";
 
         if(filtrelenmis.length === 0) {
-            html = '<div style="background-color:#fff; border:1px solid var(--border-color); padding:16px; border-radius:8px; text-align:center; color:var(--text-muted); font-size:13px;">Uygun iş emri bulunamadı.</div>';
+            html = '<div style="background:#fff; border:1px solid var(--border-color); padding:16px; border-radius:8px; text-align:center; color:var(--text-muted);">Uygun iş emri bulunamadı.</div>';
         } else {
             filtrelenmis.forEach(function(is) {
                 var cardId = formatVeri(is.id);
                 var fDurum = formatVeri(is.firmadurumu);
                 var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
-                
                 var teslimTarihInput = formatTarihInput(is.teslimtarihi);
                 var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
 
@@ -671,42 +368,26 @@
                 if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
                 if(fDurum === "Bitti") badgeClass = "badge-bitti";
 
-                html += '<div class="card" id="card_' + cardId + '" data-ilgilino="' + ilgiliNo + '">' +
+                html += '<div class="card" id="card_' + cardId + '">' +
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center gap-2">' +
                             '<span class="badge ' + badgeClass + '" id="badge_' + cardId + '">' + fDurum + '</span>' +
-                            '<strong style="color:var(--text-main); font-size:14px;">' + formatVeri(is.tanim) + '</strong>' +
-                            '<span class="info-pill">Sp Tp: <b>' + formatVeri(is.sptp) + '</b></span>' +
+                            '<strong>' + formatVeri(is.tanim) + '</strong>' +
                             '<span class="info-pill">Sp No: <b>' + formatVeri(is.sprsno) + '</b></span>' +
                             '<span class="info-pill">İlgili No: <b style="color:var(--primary);">' + ilgiliNo + '</b></span>' +
                         '</div>' +
-                        '<div class="d-flex align-items-center gap-2">' +
-                            '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + formatVeri(is.ob) + '</span>' +
-                        '</div>' +
+                        '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + formatVeri(is.ob) + '</span>' +
                     '</div>' +
-
                     '<div class="d-flex gap-2 align-items-center" style="margin-top:6px;">' +
-                        '<div style="width:130px;">' +
-                            '<select id="durum_' + cardId + '" class="form-select" onchange="durumDegisti(\'' + cardId + '\')">' +
-                                '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
-                                '<option value="Uretimde" ' + (fDurum=='Uretimde' || fDurum=='Üretimde'?'selected':'') + '>Üretimde</option>' +
-                                '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
-                            '</select>' +
-                        '</div>' +
-                        '<div style="width:90px;">' +
-                            '<input type="number" id="adet_' + cardId + '" class="form-control" placeholder="Miktar" value="' + miktar + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
-                        '</div>' +
-                        '<div style="width:130px;">' +
-                            '<input type="date" id="teslim_' + cardId + '" class="form-control" value="' + teslimTarihInput + '" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
-                        '</div>' +
-                        '<div style="flex:1;">' +
-                            '<input type="text" id="not_' + cardId + '" class="form-control" placeholder="Not ekleyin..." value="' + notIcerigi + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
-                        '</div>' +
-                        '<div>' +
-                            '<button onclick="tekliKaydet(\'' + cardId + '\')" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;" title="Bu Satırı Kaydet">' +
-                                '<i class="fa-solid fa-check"></i> Kaydet' +
-                            '</button>' +
-                        '</div>' +
+                        '<div style="width:130px;"><select id="durum_' + cardId + '" class="form-select" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
+                            '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
+                            '<option value="Uretimde" ' + (fDurum=='Uretimde' || fDurum=='Üretimde'?'selected':'') + '>Üretimde</option>' +
+                            '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
+                        '</select></div>' +
+                        '<div style="width:90px;"><input type="number" id="adet_' + cardId + '" class="form-control" value="' + miktar + '" oninput="degisiklikVurgula(\'' + cardId + '\')"></div>' +
+                        '<div style="width:130px;"><input type="date" id="teslim_' + cardId + '" class="form-control" value="' + teslimTarihInput + '" onchange="degisiklikVurgula(\'' + cardId + '\')"></div>' +
+                        '<div style="flex:1;"><input type="text" id="not_' + cardId + '" class="form-control" placeholder="Not..." value="' + notIcerigi + '" oninput="degisiklikVurgula(\'' + cardId + '\')"></div>' +
+                        '<div><button onclick="tekliKaydet(\'' + cardId + '\')" class="btn btn-success" style="padding:6px 12px; font-size:12px;"><i class="fa-solid fa-check"></i> Kaydet</button></div>' +
                     '</div>' +
                 '</div>';
             });
@@ -714,110 +395,41 @@
         document.getElementById("isKartlari").innerHTML = html;
     }
 
-    function durumDegisti(cardId) {
-        degisiklikVurgula(cardId);
-        var secilenDurum = document.getElementById("durum_" + cardId).value;
-        var badgeElem = document.getElementById("badge_" + cardId);
-        
-        if(badgeElem) {
-            badgeElem.innerText = secilenDurum;
-            badgeElem.className = "badge"; 
-            if(secilenDurum === "Bekliyor") badgeElem.classList.add("badge-bekliyor");
-            else if(secilenDurum === "Uretimde" || secilenDurum === "Üretimde") badgeElem.classList.add("badge-uretimde");
-            else if(secilenDurum === "Bitti") badgeElem.classList.add("badge-bitti");
-        }
+    function degisiklikVurgula(cardId) {
+        document.getElementById("card_" + cardId).classList.add("modified");
     }
 
-    function tekliKaydet(cardId) {
-        var cardElem = document.getElementById("card_" + cardId);
-        var ilgiliNoVal = cardElem ? cardElem.getAttribute("data-ilgilino") : "";
-        var orijinal = mevcutIsler.find(x => String(x.id) === String(cardId));
-
-        var yeniDurum = document.getElementById("durum_" + cardId).value;
-        var yeniMiktar = document.getElementById("adet_" + cardId).value;
-        var yeniTarihVal = document.getElementById("teslim_" + cardId).value;
-        var notVal = document.getElementById("not_" + cardId).value;
-
-        var detayObj = [{
+    async function tekliKaydet(cardId) {
+        var veri = {
             id: String(cardId),
-            ilgiliNo: ilgiliNoVal,
-            sprsno: orijinal ? orijinal.sprsno : "-",
-            tanim: orijinal ? orijinal.tanim : "-",
-            eskiDurum: orijinal ? orijinal.firmadurumu : "-",
-            yeniDurum: yeniDurum,
-            eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
-            yeniMiktar: yeniMiktar,
-            eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
-            yeniTarih: formatTarihEkrana(yeniTarihVal),
-            teslimTarihi: yeniTarihVal,
-            not: notVal
-        }];
-
-        scriptTemizle();
-        const payload = encodeURIComponent(JSON.stringify(detayObj));
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        
-        window.tekliKaydetGeriDonus = function(res) {
-            scriptTemizle();
-            if (res && res.status === "success") {
-                if(orijinal) {
-                    orijinal.firmadurumu = yeniDurum;
-                    orijinal.uretilendir_miktar = yeniMiktar;
-                    orijinal.teslimtarihi = yeniTarihVal;
-                    orijinal.yansanayinotu = notVal;
-                }
-                alert("Satır başarıyla kaydedildi!");
-                isleriListele(aktifFirma, girilenSifre);
-            } else {
-                alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
-            }
+            yeniDurum: document.getElementById("durum_" + cardId).value,
+            yeniMiktar: document.getElementById("adet_" + cardId).value,
+            teslimTarihi: document.getElementById("teslim_" + cardId).value,
+            not: document.getElementById("not_" + cardId).value
         };
 
-        script.src = API_URL + "?action=update&data=" + payload + "&callback=tekliKaydetGeriDonus";
-        document.body.appendChild(script);
+        const res = await apiIstek({ action: "update", data: [veri] });
+        if (res && res.status === "success") {
+            alert("Satır başarıyla kaydedildi!");
+            await isleriListele();
+        } else {
+            alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
+        }
     }
 
-    function topluKaydet() {
-        if (mevcutIsler.length === 0) return alert("Kaydedilecek veri yok.");
-        
-        let guncellenecekler = [];
+    async function topluKaydet() {
         const degisenKartlar = document.querySelectorAll('.card.modified');
-        
-        if (degisenKartlar.length === 0) {
-            return alert("Herhangi bir değişiklik yapmadınız.");
-        }
+        if (degisenKartlar.length === 0) return alert("Değişen kayıt yok.");
 
+        let guncellenecekler = [];
         degisenKartlar.forEach(function(kart) {
             var cardId = kart.id.replace('card_', '');
-            var ilgiliNoVal = kart.getAttribute("data-ilgilino") || "";
-            var orijinal = mevcutIsler.find(x => String(x.id) === String(cardId));
-
-            var yeniDurum = document.getElementById("durum_" + cardId).value;
-            var yeniMiktar = document.getElementById("adet_" + cardId).value;
-            var yeniTarihVal = document.getElementById("teslim_" + cardId).value;
-            var notVal = document.getElementById("not_" + cardId).value;
-            
-            if(orijinal) {
-                orijinal.firmadurumu = yeniDurum;
-                orijinal.uretilendir_miktar = yeniMiktar;
-                orijinal.teslimtarihi = yeniTarihVal;
-                orijinal.yansanayinotu = notVal;
-            }
-
             guncellenecekler.push({
                 id: String(cardId),
-                ilgiliNo: ilgiliNoVal,
-                sprsno: orijinal ? orijinal.sprsno : "-",
-                tanim: orijinal ? orijinal.tanim : "-",
-                eskiDurum: orijinal ? orijinal.firmadurumu : "-",
-                yeniDurum: yeniDurum,
-                eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
-                yeniMiktar: yeniMiktar,
-                eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
-                yeniTarih: formatTarihEkrana(yeniTarihVal),
-                teslimTarihi: yeniTarihVal,
-                not: notVal
+                yeniDurum: document.getElementById("durum_" + cardId).value,
+                yeniMiktar: document.getElementById("adet_" + cardId).value,
+                teslimTarihi: document.getElementById("teslim_" + cardId).value,
+                not: document.getElementById("not_" + cardId).value
             });
         });
 
@@ -825,149 +437,95 @@
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
         btn.disabled = true;
 
-        scriptTemizle();
-        const payload = encodeURIComponent(JSON.stringify(guncellenecekler));
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        
-        window.topluKaydetGeriDonus = function(res) {
-            scriptTemizle();
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-            btn.disabled = false;
+        const res = await apiIstek({ action: "update", data: guncellenecekler });
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+        btn.disabled = false;
+
+        if (res && res.status === "success") {
+            alert("Tüm değişiklikler başarıyla kaydedildi!");
+            await isleriListele();
+        } else {
+            alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
+        }
+    }
+
+    async function supplierExcelYukle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const statusDiv = document.getElementById("supplierUploadStatus");
+        statusDiv.innerHTML = '<div class="spinner"></div><p>Yükleniyor...</p>';
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            let guncellenecekler = [];
+
+            jsonData.forEach(row => {
+                let satirNo = null;
+                let hamDurum = "Bekliyor";
+                let yeniMiktar = "0";
+                let tTarih = "";
+                let notVal = "";
+
+                for (let key in row) {
+                    let k = key.toLowerCase().trim();
+                    if (k.includes("satır no") || k.includes("satir no") || k === "id") satirNo = row[key];
+                    if (k.includes("durum")) hamDurum = row[key];
+                    if (k.includes("miktar") || k.includes("üretilen")) yeniMiktar = row[key];
+                    if (k.includes("tarih")) tTarih = row[key];
+                    if (k.includes("not")) notVal = row[key];
+                }
+
+                if (satirNo) {
+                    guncellenecekler.push({
+                        id: String(satirNo),
+                        yeniDurum: hamDurum,
+                        yeniMiktar: String(yeniMiktar),
+                        teslimTarihi: tTarih,
+                        not: String(notVal)
+                    });
+                }
+            });
+
+            const res = await apiIstek({ action: "update", data: guncellenecekler });
             if (res && res.status === "success") {
-                alert("Güncellemeler başarıyla kaydedildi!");
-                isleriListele(aktifFirma, girilenSifre);
+                statusDiv.innerHTML = '<div style="color:var(--success);">Başarıyla kaydedildi!</div>';
+                setTimeout(() => supplierExcelModalKapat(), 1200);
             } else {
-                alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
+                statusDiv.innerHTML = '<div style="color:var(--danger);">Hata: ' + res.message + '</div>';
             }
         };
-
-        script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetGeriDonus";
-        document.body.appendChild(script);
+        reader.readAsArrayBuffer(file);
     }
 
-    function urunOnerileriGoster() {
-        const listDiv = document.getElementById("autocompleteList");
-        const aramaVal = document.getElementById("aramaKutusu").value.toLowerCase();
-        
-        let benzersizTanimlar = [...new Set(mevcutIsler.map(is => formatVeri(is.tanim)).filter(t => t !== "-"))];
-        
-        if (aramaVal.trim() !== "") {
-            benzersizTanimlar = benzersizTanimlar.filter(t => t.toLowerCase().includes(aramaVal));
-        }
+    async function jdeExcelYukle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const statusDiv = document.getElementById("uploadStatus");
+        statusDiv.innerHTML = '<div class="spinner"></div><p>JDE güncelleniyor...</p>';
 
-        if (benzersizTanimlar.length === 0) {
-            listDiv.classList.add("d-none");
-            listDiv.innerHTML = "";
-            return;
-        }
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
 
-        let html = "";
-        benzersizTanimlar.forEach(tanim => {
-            html += `<div onclick="urunSec('${tanim}')">${tanim}</div>`;
-        });
-
-        listDiv.innerHTML = html;
-        listDiv.classList.remove("d-none");
+            const res = await apiIstek({ action: "upload", excelData: jsonData });
+            if (res && res.status === "success") {
+                statusDiv.innerHTML = '<div style="color:var(--success);">Güncellendi!</div>';
+                alert("JDE verileri başarıyla yüklendi!");
+            } else {
+                statusDiv.innerHTML = '<div style="color:var(--danger);">Hata!</div>';
+            }
+        };
+        reader.readAsArrayBuffer(file);
     }
 
-    function urunSec(tanim) {
-        document.getElementById("aramaKutusu").value = tanim;
-        document.getElementById("autocompleteList").classList.add("d-none");
-        kartlariFiltrele();
-    }
-
-    document.addEventListener("click", function (e) {
-        if (!e.target.closest('.autocomplete-container')) {
-            const listDiv = document.getElementById("autocompleteList");
-            if (listDiv) listDiv.classList.add("d-none");
-        }
-    });
-
-    function degisiklikVurgula(cardId) {
-        const cardElem = document.getElementById("card_" + cardId);
-        if (cardElem) cardElem.classList.add("modified");
-    }
-
-    function kartlariFiltrele() { 
-        urunOnerileriGoster(); 
-        kartlariEkranaBas(); 
-    }
-    
     function durumFiltrele(durum, btnElem) {
         aktifDurumFiltresi = durum;
         document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
         btnElem.classList.add('active');
         kartlariEkranaBas();
-    }
-
-    async function excelIndir() {
-        if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
-        
-        const btn = document.getElementById("btnExcelIndir");
-        const orjinalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
-        btn.disabled = true;
-
-        try {
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('İş Listesi');
-
-            worksheet.columns = [
-                { header: 'Satır No', key: 'id', width: 10 },
-                { header: 'İlgili Numarası', key: 'ilgiliNo', width: 14 },
-                { header: 'Sipariş No', key: 'sprsno', width: 12 },
-                { header: 'Tanım', key: 'tanim', width: 24 },
-                { header: 'Bakiye', key: 'ob', width: 10 },
-                { header: 'Teslim Tarihi', key: 'teslimtarihi', width: 14 },
-                { header: 'Firma Durumu', key: 'firmadurumu', width: 16 },
-                { header: 'Üretilen Miktar', key: 'uretilendir_miktar', width: 14 },
-                { header: 'Yan Sanayi Notu', key: 'yansanayinotu', width: 28 }
-            ];
-
-            mevcutIsler.forEach(is => {
-                var tTar = is.teslimtarihi || "";
-
-                worksheet.addRow({
-                    id: is.id,
-                    ilgiliNo: is.ilgiliNo,
-                    sprsno: is.sprsno,
-                    tanim: is.tanim,
-                    ob: is.ob,
-                    teslimtarihi: formatTarihEkrana(tTar),
-                    firmadurumu: is.firmadurumu,
-                    uretilendir_miktar: is.uretilendir_miktar,
-                    yansanayinotu: is.yansanayinotu
-                });
-            });
-
-            const totalRows = mevcutIsler.length + 1;
-            for (let i = 2; i <= totalRows; i++) {
-                const cell = worksheet.getCell(`G${i}`);
-                cell.dataValidation = {
-                    type: 'list',
-                    allowBlank: true,
-                    formulae: ['"Bekliyor,Üretimde,Bitti"'],
-                    showErrorMessage: true,
-                    errorTitle: 'Geçersiz Giriş',
-                    error: 'Lütfen listeden geçerli bir durum seçiniz (Bekliyor, Üretimde, Bitti).'
-                };
-            }
-
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = aktifFirma + "_Is_Listesi.xlsx";
-            link.click();
-            URL.revokeObjectURL(link.href);
-
-        } catch (err) {
-            alert("Excel yüklenirken veya oluşturulurken hata: " + err.message);
-        } finally {
-            btn.innerHTML = orjinalHtml;
-            btn.disabled = false;
-        }
     }
 </script>
 </body>
