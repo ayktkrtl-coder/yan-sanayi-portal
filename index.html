@@ -466,7 +466,7 @@
         return "Bekliyor";
     }
 
-    // EXCEL YÜKLEME VE DOĞRUDAN KAYDETME (MAİL TAMAMEN KALDIRILDI)
+    // TOPLU EXCEL YÜKLEME (DOĞRUDAN SATIR ID EŞLEŞTİRMELİ)
     function supplierExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -511,7 +511,7 @@
                             if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
                         }
 
-                        var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
+                        var orijinal = mevcutIsler.find(x => String(x.id) === String(satirNo));
 
                         topluGuncellenecekler.push({
                             id: String(satirNo),
@@ -731,7 +731,7 @@
     function tekliKaydet(cardId) {
         var cardElem = document.getElementById("card_" + cardId);
         var ilgiliNoVal = cardElem ? cardElem.getAttribute("data-ilgilino") : "";
-        var orijinal = mevcutIsler.find(x => x.id == String(cardId) || x.ilgiliNo == String(ilgiliNoVal));
+        var orijinal = mevcutIsler.find(x => String(x.id) === String(cardId));
 
         var yeniDurum = document.getElementById("durum_" + cardId).value;
         var yeniMiktar = document.getElementById("adet_" + cardId).value;
@@ -739,7 +739,7 @@
         var notVal = document.getElementById("not_" + cardId).value;
 
         var detayObj = [{
-            id: cardId,
+            id: String(cardId),
             ilgiliNo: ilgiliNoVal,
             sprsno: orijinal ? orijinal.sprsno : "-",
             tanim: orijinal ? orijinal.tanim : "-",
@@ -791,7 +791,7 @@
         degisenKartlar.forEach(function(kart) {
             var cardId = kart.id.replace('card_', '');
             var ilgiliNoVal = kart.getAttribute("data-ilgilino") || "";
-            var orijinal = mevcutIsler.find(x => x.id == String(cardId) || x.ilgiliNo == String(ilgiliNoVal));
+            var orijinal = mevcutIsler.find(x => String(x.id) === String(cardId));
 
             var yeniDurum = document.getElementById("durum_" + cardId).value;
             var yeniMiktar = document.getElementById("adet_" + cardId).value;
@@ -806,7 +806,7 @@
             }
 
             guncellenecekler.push({
-                id: cardId,
+                id: String(cardId),
                 ilgiliNo: ilgiliNoVal,
                 sprsno: orijinal ? orijinal.sprsno : "-",
                 tanim: orijinal ? orijinal.tanim : "-",
