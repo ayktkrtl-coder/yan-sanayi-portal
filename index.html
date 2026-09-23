@@ -141,7 +141,6 @@
             <input type="text" id="firmaAdi" class="form-control" style="margin-bottom:8px;" placeholder="Firma adınızı veya ADMIN yazın..." autocomplete="off">
             
             <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Giriş Şifresi:</label>
-            <!-- Şifre uyarısını engellemek için type text yapıldı ve CSS ile gizlendi -->
             <input type="text" id="firmaPass" class="form-control" style="margin-bottom:12px; -webkit-text-security: disc;" placeholder="Şifreniz..." autocomplete="new-password" spellcheck="false">
 
             <button onclick="girisYap()" id="btnListele" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
@@ -230,8 +229,7 @@
 </div>
 
 <script>
-    // Sizin ilettiğiniz en güncel API adresiniz eklendi.
-    const API_URL = "https://script.google.com/macros/s/AKfycbyM9OHWyqfxX1SZZAN3XXKbDdVQhFVHKCUI0uoBBlKPpDQPlcuuKkfPFnt4I9-vOljT/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbzhC5DfrX3-gKbyNQFp77u2snlQCD8u2eroJPT99hZlfYtq5F5yq_VaLblrPEBWSW_A/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -239,20 +237,33 @@
     let mevcutIsler = [];
     let aktifDurumFiltresi = "Tumu";
 
-    async function apiIstek(payload) {
-        try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
-            return await response.json();
-        } catch (err) {
-            console.error("API Hatası:", err);
-            return { status: "error", message: err.message };
-        }
+    function scriptTemizle() {
+        const tempScripts = document.querySelectorAll('.jsonp-temp');
+        tempScripts.forEach(s => s.remove());
     }
 
-    async function girisYap() {
+    function jsonpIstek(params, callbackName, onSuccess) {
+        scriptTemizle();
+        window[callbackName] = function(res) {
+            scriptTemizle();
+            onSuccess(res);
+        };
+        
+        let url = API_URL + "?callback=" + callbackName;
+        for (let key in params) {
+            url += "&" + key + "=" + encodeURIComponent(params[key]);
+        }
+        
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = url;
+        script.onerror = function() {
+            alert("Sunucuyla bağlantı kurulamadı.");
+        };
+        document.body.appendChild(script);
+    }
+
+    function girisYap() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
         girilenSifre = document.getElementById("firmaPass").value.trim();
 
@@ -268,26 +279,39 @@
                 alert("Hatalı yönetici şifresi!");
             }
         } else {
-            await isleriListele();
+            isleriListele();
         }
     }
 
-    async function isleriListele() {
+    function isleriListele() {
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
         document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Veriler yükleniyor...</p></div>';
 
-        const res = await apiIstek({ action: "read", firma: aktifFirma, sifre: girilenSifre });
-        
-        if (Array.isArray(res)) {
-            mevcutIsler = res;
-            kartlariEkranaBas();
-        } else {
-            alert("Veriler yüklenirken hata oluştu: " + (res.message || "Bilinmeyen hata"));
-            location.reload();
-        }
+        jsonpIstek({ action: "read", firma: aktifFirma, sifre: girilenSifre }, " okumaDonusu", function(res) {
+            // Callback düzeltme
+        });
+    }
+
+    // Doğru JSONP okuma fonksiyonu
+    function isleriListele() {
+        document.getElementById("loginSection").classList.add("d-none");
+        document.getElementById("listSection").classList.remove("d-none");
+        document.getElementById("headerSection").classList.add("d-none");
+        document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
+        document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Veriler yükleniyor...</p></div>';
+
+        jsonpIstek({ action: "read", firma: aktifFirma, sifre: girilenSifre }, "okumaGeriDonus", function(res) {
+            if (Array.isArray(res)) {
+                mevcutIsler = res;
+                kartlariEkranaBas();
+            } else {
+                alert("Veriler yüklenirken hata oluştu: " + (res.message || "Bilinmeyen hata"));
+                location.reload();
+            }
+        });
     }
 
     function sifreModalAc() { document.getElementById("sifreModal").classList.remove("d-none"); }
@@ -302,22 +326,23 @@
         isleriListele();
     }
 
-    async function sifreGuncelle() {
+    function sifreGuncelle() {
         var p1 = document.getElementById("newPass1").value.trim();
         var p2 = document.getElementById("newPass2").value.trim();
         if(!p1 || !p2) return alert("Şifre alanlarını doldurun.");
         if(p1 !== p2) return alert("Şifreler uyuşmuyor!");
 
-        const res = await apiIstek({ action: "changePassword", firma: aktifFirma, yeniSifre: p1 });
-        if(res && res.status === "success") {
-            alert("Şifreniz başarıyla değiştirildi!");
-            sifreModalKapat();
-            girilenSifre = p1;
-            document.getElementById("newPass1").value = "";
-            document.getElementById("newPass2").value = "";
-        } else {
-            alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
-        }
+        jsonpIstek({ action: "changePassword", firma: aktifFirma, yeniSifre: p1 }, "sifreGuncelleDonus", function(res) {
+            if(res && res.status === "success") {
+                alert("Şifreniz başarıyla değiştirildi!");
+                sifreModalKapat();
+                girilenSifre = p1;
+                document.getElementById("newPass1").value = "";
+                document.getElementById("newPass2").value = "";
+            } else {
+                alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
+            }
+        });
     }
 
     function formatVeri(deger) {
@@ -403,7 +428,7 @@
         document.getElementById("card_" + cardId).classList.add("modified");
     }
 
-    async function tekliKaydet(cardId) {
+    function tekliKaydet(cardId) {
         var veri = {
             id: String(cardId),
             yeniDurum: document.getElementById("durum_" + cardId).value,
@@ -412,16 +437,17 @@
             not: document.getElementById("not_" + cardId).value
         };
 
-        const res = await apiIstek({ action: "update", data: [veri] });
-        if (res && res.status === "success") {
-            alert("Satır başarıyla kaydedildi!");
-            await isleriListele();
-        } else {
-            alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
-        }
+        jsonpIstek({ action: "update", data: JSON.stringify([veri]) }, "tekliKaydetDonus", function(res) {
+            if (res && res.status === "success") {
+                alert("Satır başarıyla kaydedildi!");
+                isleriListele();
+            } else {
+                alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
+            }
+        });
     }
 
-    async function topluKaydet() {
+    function topluKaydet() {
         const degisenKartlar = document.querySelectorAll('.card.modified');
         if (degisenKartlar.length === 0) return alert("Değişen kayıt yok.");
 
@@ -441,26 +467,27 @@
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
         btn.disabled = true;
 
-        const res = await apiIstek({ action: "update", data: guncellenecekler });
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-        btn.disabled = false;
+        jsonpIstek({ action: "update", data: JSON.stringify(guncellenecekler) }, "topluKaydetDonus", function(res) {
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+            btn.disabled = false;
 
-        if (res && res.status === "success") {
-            alert("Tüm değişiklikler başarıyla kaydedildi!");
-            await isleriListele();
-        } else {
-            alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
-        }
+            if (res && res.status === "success") {
+                alert("Tüm değişiklikler başarıyla kaydedildi!");
+                isleriListele();
+            } else {
+                alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
+            }
+        });
     }
 
-    async function supplierExcelYukle(event) {
+    function supplierExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
         const statusDiv = document.getElementById("supplierUploadStatus");
         statusDiv.innerHTML = '<div class="spinner"></div><p>Yükleniyor...</p>';
 
         const reader = new FileReader();
-        reader.onload = async function(e) {
+        reader.onload = function(e) {
             const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
             const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
             let guncellenecekler = [];
@@ -492,35 +519,37 @@
                 }
             });
 
-            const res = await apiIstek({ action: "update", data: guncellenecekler });
-            if (res && res.status === "success") {
-                statusDiv.innerHTML = '<div style="color:var(--success);">Başarıyla kaydedildi!</div>';
-                setTimeout(() => supplierExcelModalKapat(), 1200);
-            } else {
-                statusDiv.innerHTML = '<div style="color:var(--danger);">Hata: ' + res.message + '</div>';
-            }
+            jsonpIstek({ action: "update", data: JSON.stringify(guncellenecekler) }, "excelYukleDonus", function(res) {
+                if (res && res.status === "success") {
+                    statusDiv.innerHTML = '<div style="color:var(--success);">Başarıyla kaydedildi!</div>';
+                    setTimeout(() => supplierExcelModalKapat(), 1200);
+                } else {
+                    statusDiv.innerHTML = '<div style="color:var(--danger);">Hata: ' + res.message + '</div>';
+                }
+            });
         };
         reader.readAsArrayBuffer(file);
     }
 
-    async function jdeExcelYukle(event) {
+    function jdeExcelYukle(event) {
         const file = event.target.files[0];
         if (!file) return;
         const statusDiv = document.getElementById("uploadStatus");
         statusDiv.innerHTML = '<div class="spinner"></div><p>JDE güncelleniyor...</p>';
 
         const reader = new FileReader();
-        reader.onload = async function(e) {
+        reader.onload = function(e) {
             const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
             const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
 
-            const res = await apiIstek({ action: "upload", excelData: jsonData });
-            if (res && res.status === "success") {
-                statusDiv.innerHTML = '<div style="color:var(--success);">Güncellendi!</div>';
-                alert("JDE verileri başarıyla yüklendi!");
-            } else {
-                statusDiv.innerHTML = '<div style="color:var(--danger);">Hata!</div>';
-            }
+            jsonpIstek({ action: "upload", excelData: JSON.stringify(jsonData) }, "jdeYukleDonus", function(res) {
+                if (res && res.status === "success") {
+                    statusDiv.innerHTML = '<div style="color:var(--success);">Güncellendi!</div>';
+                    alert("JDE verileri başarıyla yüklendi!");
+                } else {
+                    statusDiv.innerHTML = '<div style="color:var(--danger);">Hata!</div>';
+                }
+            });
         };
         reader.readAsArrayBuffer(file);
     }
