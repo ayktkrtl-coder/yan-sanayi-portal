@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -229,7 +228,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzhC5DfrX3-gKbyNQFp77u2snlQCD8u2eroJPT99hZlfYtq5F5yq_VaLblrPEBWSW_A/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbzzCfPR1960B1qioS7DIPz6fPUFJiW7lO2V1ZYQDwjbGojXZHEC8mJuA87uyP99ZKz_/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -290,19 +289,6 @@
         document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
         document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Veriler yükleniyor...</p></div>';
 
-        jsonpIstek({ action: "read", firma: aktifFirma, sifre: girilenSifre }, " okumaDonusu", function(res) {
-            // Callback düzeltme
-        });
-    }
-
-    // Doğru JSONP okuma fonksiyonu
-    function isleriListele() {
-        document.getElementById("loginSection").classList.add("d-none");
-        document.getElementById("listSection").classList.remove("d-none");
-        document.getElementById("headerSection").classList.add("d-none");
-        document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
-        document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Veriler yükleniyor...</p></div>';
-
         jsonpIstek({ action: "read", firma: aktifFirma, sifre: girilenSifre }, "okumaGeriDonus", function(res) {
             if (Array.isArray(res)) {
                 mevcutIsler = res;
@@ -340,7 +326,7 @@
                 document.getElementById("newPass1").value = "";
                 document.getElementById("newPass2").value = "";
             } else {
-                alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
+                alert("Shifre değiştirilemedi: " + (res.message || "Hata"));
             }
         });
     }
@@ -392,6 +378,8 @@
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
                 var teslimTarihInput = formatTarihInput(is.teslimtarihi);
                 var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
+                var sprsNo = is.sprsno ? formatVeri(is.sprsno) : "-";
+                var tanimMetni = is.tanim ? formatVeri(is.tanim) : "-";
 
                 var badgeClass = "badge-bekliyor";
                 if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
@@ -401,8 +389,8 @@
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center gap-2">' +
                             '<span class="badge ' + badgeClass + '" id="badge_' + cardId + '">' + fDurum + '</span>' +
-                            '<strong>' + formatVeri(is.tanim) + '</strong>' +
-                            '<span class="info-pill">Sp No: <b>' + formatVeri(is.sprsno) + '</b></span>' +
+                            '<strong>' + tanimMetni + '</strong>' +
+                            '<span class="info-pill">Sp No: <b>' + sprsNo + '</b></span>' +
                             '<span class="info-pill">İlgili No: <b style="color:var(--primary);">' + ilgiliNo + '</b></span>' +
                         '</div>' +
                         '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + formatVeri(is.ob) + '</span>' +
@@ -478,6 +466,16 @@
                 alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
             }
         });
+    }
+
+    function supplierExcelModalAc() { 
+        document.getElementById("supplierUploadStatus").innerHTML = "";
+        document.getElementById("supplierFileInput").value = "";
+        document.getElementById("supplierExcelModal").classList.remove("d-none"); 
+    }
+    function supplierExcelModalKapat() { 
+        document.getElementById("supplierExcelModal").classList.add("d-none");
+        isleriListele();
     }
 
     function supplierExcelYukle(event) {
