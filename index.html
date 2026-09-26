@@ -228,7 +228,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbycerYIAQWdxL2ArS1Hjujhg9yQntOrMQIUaYMweyIvi2Kbvw3d7V6voYHixxw8YUlG/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbzSjZkpvUu4hELCuR6KOCUpv118CA-C_ckXwtKzJTpy3yqbnnjcdgbxi8YlcLiH9mI0/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -378,9 +378,10 @@
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
                 var teslimTarihInput = formatTarihInput(is.teslimtarihi);
                 
-                var ilgiliNo = formatVeri(is.ilgiliNo);
-                var sprsNo = formatVeri(is.sprsno);
-                var tanimMetni = formatVeri(is.tanim);
+                // Güvenli anahtar eşlemesi
+                var ilgiliNo = is.ilgiliNo !== undefined ? formatVeri(is.ilgiliNo) : "-";
+                var sprsNo = is.sprsno !== undefined ? formatVeri(is.sprsno) : "-";
+                var tanimMetni = is.tanim !== undefined ? formatVeri(is.tanim) : "-";
 
                 var badgeClass = "badge-bekliyor";
                 if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
