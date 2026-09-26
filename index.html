@@ -326,7 +326,7 @@
                 document.getElementById("newPass1").value = "";
                 document.getElementById("newPass2").value = "";
             } else {
-                alert("Shifre değiştirilemedi: " + (res.message || "Hata"));
+                alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
             }
         });
     }
@@ -377,9 +377,10 @@
                 var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
                 var teslimTarihInput = formatTarihInput(is.teslimtarihi);
-                var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
-                var sprsNo = is.sprsno ? formatVeri(is.sprsno) : "-";
-                var tanimMetni = is.tanim ? formatVeri(is.tanim) : "-";
+                
+                var ilgiliNo = formatVeri(is.ilgiliNo);
+                var sprsNo = formatVeri(is.sprsno);
+                var tanimMetni = formatVeri(is.tanim);
 
                 var badgeClass = "badge-bekliyor";
                 if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
@@ -468,14 +469,8 @@
         });
     }
 
-    function supplierExcelModalAc() { 
-        document.getElementById("supplierUploadStatus").innerHTML = "";
-        document.getElementById("supplierFileInput").value = "";
-        document.getElementById("supplierExcelModal").classList.remove("d-none"); 
-    }
-    function supplierExcelModalKapat() { 
-        document.getElementById("supplierExcelModal").classList.add("d-none");
-        isleriListele();
+    function excelIndir() {
+        window.open(API_URL + "?action=read&firma=ADMIN&sifre=1234", "_blank");
     }
 
     function supplierExcelYukle(event) {
