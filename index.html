@@ -483,6 +483,7 @@
                 var tTarih = "";
                 var notVal = "";
 
+                // Excel sütun başlıklarını esnek ve garantili şekilde tarıyoruz
                 for (var key in row) {
                     var k = key.toLowerCase().trim();
                     if (k.includes("satır no") || k.includes("satir no") || k === "id") satirNo = row[key];
@@ -493,24 +494,21 @@
                     if (k.includes("not")) notVal = row[key];
                 }
 
+                // Eğer Satır No veya İlgili Numarası varsa işleme alıyoruz
                 if (satirNo || ilgiliNo) {
                     if (tTarih && String(tTarih).includes(".")) {
                         var p = String(tTarih).split(".");
                         if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
                     }
 
-                    var orijinal = mevcutIsler.find(x => String(x.id) === String(satirNo) || String(x.ilgiliNo) === String(ilgiliNo));
-
                     topluGuncellenecekler.push({
-                        id: orijinal ? String(orijinal.id) : String(satirNo || ""),
-                        ilgiliNo: String(ilgiliNo || (orijinal ? orijinal.ilgiliNo : "")),
-                        sprsno: orijinal ? orijinal.sprsno : "-",
-                        tanim: orijinal ? orijinal.tanim : "-",
-                        eskiDurum: orijinal ? orijinal.firmadurumu : "-",
+                        id: String(satirNo || ""), // Doğrudan Excel'deki Satır No'yu id olarak alıyoruz
+                        ilgiliNo: String(ilgiliNo || ""),
+                        eskiDurum: "Bekliyor",
                         yeniDurum: hamDurum || "Bekliyor",
-                        eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
+                        eskiMiktar: "0",
                         yeniMiktar: String(miktarVal !== undefined ? miktarVal : "0"),
-                        eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
+                        eskiTarih: "",
                         yeniTarih: formatTarihEkrana(tTarih),
                         teslimTarihi: tTarih,
                         not: String(notVal !== undefined ? notVal : "")
@@ -528,7 +526,6 @@
         };
         reader.readAsArrayBuffer(file);
     }
-
     function sonrakiPaketiGonder() {
         const statusDiv = document.getElementById("supplierUploadStatus");
         var toplam = topluGuncellenecekler.length;
