@@ -313,7 +313,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwf2S-V72NaEUrJ5EekD_RiMSRRiHqsFHu-kPAX63gItB-ZR_1NaoapXpvsTAbxPJTe/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbyx1MfhO3hQj2aM_K1m9VI5G7FLtEnHtVi4zM2lSvTuozupWYkEr16eKpiUmFF7uqXu/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -457,7 +457,7 @@
         if (!file) return;
 
         const statusDiv = document.getElementById("supplierUploadStatus");
-        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Excel ayrıştırılıyor...</p>';
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Excel dosyası okunuyor...</p>';
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -470,37 +470,50 @@
             topluGuncellenecekler = [];
 
             jsonData.forEach(row => {
-                var satirNo = row["Satır No"] || row["Satir No"] || row["ID"];
-                var ilgiliNo = row["İlgili Numarası"] || row["İlgili No"] || row["Il_No"] || "";
-                if (satirNo) {
-                    var tTarih = row["Teslim Tarihi"] || row["Teslimtarihi"] || "";
+                var satirNo = null;
+                var ilgiliNo = "";
+                var hamDurum = "Bekliyor";
+                var miktarVal = "0";
+                var tTarih = "";
+                var notVal = "";
+
+                for (var key in row) {
+                    var k = key.toLowerCase().trim();
+                    if (k.includes("satır no") || k.includes("satir no") || k === "id") satirNo = row[key];
+                    if (k.includes("ilgili")) ilgiliNo = row[key];
+                    if (k.includes("durum")) hamDurum = row[key];
+                    if (k.includes("miktar") || k.includes("üretilen")) miktarVal = row[key];
+                    if (k.includes("tarih")) tTarih = row[key];
+                    if (k.includes("not")) notVal = row[key];
+                }
+
+                if (satirNo || ilgiliNo) {
                     if (tTarih && String(tTarih).includes(".")) {
                         var p = String(tTarih).split(".");
                         if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
                     }
 
-                    // Bulunan orijinal kaydı eşleştir
-                    var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
+                    var orijinal = mevcutIsler.find(x => String(x.id) === String(satirNo) || String(x.ilgiliNo) === String(ilgiliNo));
 
                     topluGuncellenecekler.push({
-                        id: String(satirNo),
-                        ilgiliNo: String(ilgiliNo),
+                        id: orijinal ? String(orijinal.id) : String(satirNo || ""),
+                        ilgiliNo: String(ilgiliNo || (orijinal ? orijinal.ilgiliNo : "")),
                         sprsno: orijinal ? orijinal.sprsno : "-",
                         tanim: orijinal ? orijinal.tanim : "-",
                         eskiDurum: orijinal ? orijinal.firmadurumu : "-",
-                        yeniDurum: row["Firma Durumu"] || row["Durum"] || "Bekliyor",
+                        yeniDurum: hamDurum || "Bekliyor",
                         eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
-                        yeniMiktar: row["Üretilen Miktar"] || row["Miktar"] || "0",
+                        yeniMiktar: String(miktarVal !== undefined ? miktarVal : "0"),
                         eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
                         yeniTarih: formatTarihEkrana(tTarih),
                         teslimTarihi: tTarih,
-                        not: row["Yan Sanayi Notu"] || row["Not"] || ""
+                        not: String(notVal !== undefined ? notVal : "")
                     });
                 }
             });
 
             if (topluGuncellenecekler.length === 0) {
-                statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı.</div>';
+                statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri satırı bulunamadı! Excel formatını kontrol edin.</div>';
                 return;
             }
 
@@ -516,7 +529,7 @@
         var baslangic = mevcutPaketIndex * paketBoyutu;
         
         if (baslangic >= toplam) {
-            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">Detaylı e-posta raporu gönderiliyor...</p>';
+            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">E-posta raporu hazırlanıyor...</p>';
             detayliMailGonder(topluGuncellenecekler, function() {
                 statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla güncellendi!</div>';
                 setTimeout(function() {
