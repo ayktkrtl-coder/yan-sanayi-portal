@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -25,7 +26,8 @@
         body { 
             background-color: var(--bg); 
             font-family: 'Inter', -apple-system, sans-serif; 
-            margin: 0; padding: 0; 
+            margin: 0; 
+            padding: 0; 
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
         }
@@ -37,7 +39,8 @@
             border-radius: 8px; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
             border: 1px solid var(--border-color);
-            margin-bottom: 8px; padding: 10px 14px; 
+            margin-bottom: 8px; 
+            padding: 10px 14px; 
             border-left: 4px solid var(--primary); 
             transition: all 0.15s ease;
         }
@@ -49,20 +52,35 @@
         }
 
         .form-control, .form-select { 
-            display: block; width: 100%; padding: 5px 8px; 
-            font-size: 13px; font-family: inherit;
-            color: var(--text-main); background-color: #fff;
-            border: 1px solid var(--border-color); border-radius: 6px; 
+            display: block; 
+            width: 100%; 
+            padding: 5px 8px; 
+            font-size: 13px; 
+            font-family: inherit;
+            color: var(--text-main);
+            background-color: #fff;
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            transition: border-color 0.15s ease;
         }
         .form-control:focus, .form-select:focus {
-            outline: none; border-color: var(--primary);
+            outline: none;
+            border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
         }
 
         .btn { 
-            display: inline-flex; align-items: center; justify-content: center;
-            gap: 6px; font-weight: 600; padding: 7px 14px; font-size: 13px; 
-            border-radius: 6px; border: none; cursor: pointer; color: #fff; 
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-weight: 600; 
+            padding: 7px 14px; 
+            font-size: 13px; 
+            border-radius: 6px; 
+            border: none; 
+            cursor: pointer; 
+            color: #fff; 
             transition: all 0.15s ease;
         }
         .btn:hover { opacity: 0.95; }
@@ -74,9 +92,14 @@
         .btn-info { background-color: #0284c7; }
         
         .btn-filter { 
-            background-color: #f1f5f9; color: var(--text-muted); 
-            padding: 5px 12px; font-size: 12px; font-weight: 600; 
-            border-radius: 16px; border: 1px solid var(--border-color); cursor: pointer; 
+            background-color: #f1f5f9; 
+            color: var(--text-muted); 
+            padding: 5px 12px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            border-radius: 16px; 
+            border: 1px solid var(--border-color); 
+            cursor: pointer; 
         }
         .btn-filter.active { background-color: var(--primary); color: #fff; border-color: var(--primary); }
 
@@ -87,39 +110,92 @@
         .gap-2 { gap: 8px !important; }
         
         .badge { 
-            display: inline-block; padding: 2px 6px; font-size: 10px; 
-            font-weight: 700; border-radius: 4px; text-transform: uppercase;
+            display: inline-block; 
+            padding: 2px 6px; 
+            font-size: 10px; 
+            font-weight: 700; 
+            border-radius: 4px; 
+            text-transform: uppercase;
         }
         .badge-bekliyor { background-color: #fef3c7; color: #d97706; }
         .badge-uretimde { background-color: #dbeafe; color: #2563eb; }
         .badge-bitti { background-color: #d1fae5; color: #059669; }
 
         .info-pill {
-            background-color: #f1f5f9; padding: 2px 8px; border-radius: 4px;
-            font-size: 11px; color: var(--text-muted); border: 1px solid #e2e8f0;
+            background-color: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+            border: 1px solid #e2e8f0;
         }
 
         .sticky-top-panel { 
-            position: sticky; top: 0; background: rgba(248, 250, 252, 0.95); 
-            backdrop-filter: blur(8px); z-index: 1000; padding: 10px 0; 
-            border-bottom: 1px solid var(--border-color); margin-bottom: 12px;
+            position: sticky; 
+            top: 0; 
+            background: rgba(248, 250, 252, 0.95); 
+            backdrop-filter: blur(8px);
+            z-index: 1000; 
+            padding: 10px 0; 
+            border-bottom: 1px solid var(--border-color); 
+            margin-bottom: 12px;
         }
 
         .spinner { 
-            border: 3px solid rgba(79, 70, 229, 0.1); width: 28px; height: 28px; 
-            border-radius: 50%; border-left-color: var(--primary); 
-            animation: spin 0.8s linear infinite; margin: 20px auto; 
+            border: 3px solid rgba(79, 70, 229, 0.1); 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 50%; 
+            border-left-color: var(--primary); 
+            animation: spin 0.8s linear infinite; 
+            margin: 20px auto; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .drop-zone {
-            border: 2px dashed var(--primary); border-radius: 8px; padding: 20px;
-            text-align: center; background-color: #f0f3ff; cursor: pointer;
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f0f3ff;
+            cursor: pointer;
         }
         
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000;
+        }
+
+        .autocomplete-container {
+            position: relative;
+            flex: 1;
+            max-width: 260px;
+        }
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .autocomplete-items div {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-main);
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .autocomplete-items div:hover {
+            background-color: #f0f3ff;
+            color: var(--primary);
+            font-weight: 500;
         }
     </style>
 </head>
@@ -137,10 +213,10 @@
                 <h4 style="margin:8px 0 2px 0;">Portal Girişi</h4>
             </div>
             <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Tedarikçi Adı veya Yetkili Kodu:</label>
-            <input type="text" id="firmaAdi" class="form-control" style="margin-bottom:8px;" placeholder="Firma adınızı veya ADMIN yazın..." autocomplete="off">
+            <input type="text" id="firmaAdi" class="form-control" style="margin-bottom:8px;" placeholder="Firma adınızı veya ADMIN yazın...">
             
             <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Giriş Şifresi:</label>
-            <input type="text" id="firmaPass" class="form-control" style="margin-bottom:12px; -webkit-text-security: disc;" placeholder="Şifreniz..." autocomplete="new-password" spellcheck="false">
+            <input type="password" id="firmaPass" class="form-control" style="margin-bottom:12px;" placeholder="Şifreniz...">
 
             <button onclick="girisYap()" id="btnListele" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
         </div>
@@ -182,7 +258,12 @@
             </div>
             
             <div class="d-flex justify-content-between align-items-center gap-2" style="margin-top:8px;">
-                <input type="text" id="aramaKutusu" class="form-control" style="max-width:300px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariEkranaBas()">
+                <div class="autocomplete-container">
+                    <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:10px; top:8px; color:var(--text-muted); font-size:11px; z-index:2;"></i>
+                    <input type="text" id="aramaKutusu" class="form-control" style="padding-left:28px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariFiltrele()" onclick="urunOnerileriGoster()" autocomplete="off">
+                    <div id="autocompleteList" class="autocomplete-items d-none"></div>
+                </div>
+
                 <div class="d-flex gap-2">
                     <button class="btn-filter active" onclick="durumFiltrele('Tumu', this)">Tümü</button>
                     <button class="btn-filter" onclick="durumFiltrele('Bekliyor', this)">Bekleyenler</button>
@@ -200,9 +281,9 @@
         <div class="card" style="width:340px; padding:20px; border-left:none;">
             <h4 style="margin:0 0 12px 0; color:var(--primary);"><i class="fa-solid fa-key"></i> Şifre Değiştir</h4>
             <label style="font-size:12px; font-weight:600;">Yeni Şifreniz:</label>
-            <input type="text" id="newPass1" class="form-control" style="margin-bottom:8px; -webkit-text-security: disc;" placeholder="Yeni Şifre" autocomplete="new-password" spellcheck="false">
+            <input type="password" id="newPass1" class="form-control" style="margin-bottom:8px;" placeholder="Yeni Şifre">
             <label style="font-size:12px; font-weight:600;">Yeni Şifre (Tekrar):</label>
-            <input type="text" id="newPass2" class="form-control" style="margin-bottom:12px; -webkit-text-security: disc;" placeholder="Tekrar" autocomplete="new-password" spellcheck="false">
+            <input type="password" id="newPass2" class="form-control" style="margin-bottom:12px;" placeholder="Tekrar">
             <div class="d-flex gap-2">
                 <button onclick="sifreGuncelle()" class="btn btn-success" style="flex:1;">Kaydet</button>
                 <button onclick="sifreModalKapat()" class="btn btn-danger" style="flex:1;">İptal</button>
@@ -210,25 +291,29 @@
         </div>
     </div>
 
-    <!-- Toplu Excel Yükleme Modal -->
+    <!-- Tedarikçi Toplu Excel Yükleme Modal -->
     <div id="supplierExcelModal" class="modal d-none">
-        <div class="card" style="width:440px; padding:24px; border-left:none;">
+        <div class="card" style="width:420px; padding:24px; border-left:none;">
             <h4 style="margin:0 0 8px 0; color:var(--primary);"><i class="fa-solid fa-file-import"></i> Toplu Excel Güncelleme</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">
+                "Excel İndir" butonuyla indirdiğiniz dosyayı bilgisayarınızda düzenledikten sonra buraya yükleyin.
+            </p>
             <div class="drop-zone" onclick="document.getElementById('supplierFileInput').click()">
                 <i class="fa-solid fa-file-excel" style="font-size:36px; color:#059669; margin-bottom:8px;"></i>
-                <h5 style="margin:0 0 4px 0;">Güncellenmiş Excel Dosyasını Seçin</h5>
+                <h5 style="margin:0 0 4px 0;">Güncellenmiş Excel Dosyasını Bırakın</h5>
+                <small style="color:var(--text-muted);">Veya seçmek için tıklayın (.xlsx / .csv)</small>
                 <input type="file" id="supplierFileInput" class="d-none" accept=".xlsx, .xls, .csv" onchange="supplierExcelYukle(event)">
             </div>
             <div id="supplierUploadStatus" style="margin-top:12px; text-align:center; font-size:13px;"></div>
             <div style="margin-top:16px; text-align:right;">
-                <button onclick="supplierExcelModalKapat()" class="btn btn-danger">Kapat</button>
+                <button onclick="supplierExcelModalKapat()" class="btn btn-danger" id="btnModalKapat">Kapat</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyy-Ksk9IeRuzTeFO6Qucfa_Ya69ImvXB_uTEQrHJA7Ac141A8EM4h7EuKxH42b47UR/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwf2S-V72NaEUrJ5EekD_RiMSRRiHqsFHu-kPAX63gItB-ZR_1NaoapXpvsTAbxPJTe/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -236,40 +321,76 @@
     let mevcutIsler = [];
     let aktifDurumFiltresi = "Tumu";
 
+    let topluGuncellenecekler = [];
+    let paketBoyutu = 40; 
+    let mevcutPaketIndex = 0;
+
     function scriptTemizle() {
         const tempScripts = document.querySelectorAll('.jsonp-temp');
         tempScripts.forEach(s => s.remove());
     }
 
-    function jsonpIstek(params, callbackName, onSuccess) {
-        scriptTemizle();
-        window[callbackName] = function(res) {
-            scriptTemizle();
-            onSuccess(res);
-        };
-        
-        let url = API_URL + "?callback=" + callbackName;
-        for (let key in params) {
-            url += "&" + key + "=" + encodeURIComponent(params[key]);
-        }
-        
-        const script = document.createElement('script');
-        script.className = 'jsonp-temp';
-        script.src = url;
-        script.onerror = function() {
-            alert("Sunucuyla bağlantı kurulamadı.");
-        };
-        document.body.appendChild(script);
+    function formatVeri(deger) {
+        if (deger === undefined || deger === null) return "-";
+        var str = String(deger).trim();
+        return str === "" ? "-" : str;
+    }
+
+    function tarihAyristir(tarihStr) {
+        if (!tarihStr || tarihStr === "-" || tarihStr === "undefined" || tarihStr === "") return null;
+        try {
+            var str = String(tarihStr).trim();
+            if (str.includes("T")) str = str.split("T")[0];
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+                var p = str.split("-");
+                return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+            }
+
+            var sep = str.includes(".") ? "." : (str.includes("/") ? "/" : null);
+            if (sep) {
+                var p2 = str.split(sep);
+                if (p2.length === 3) {
+                    var gun = parseInt(p2[0]);
+                    var ay = parseInt(p2[1]) - 1;
+                    var yil = parseInt(p2[2]);
+                    if (yil < 100) yil += 2000;
+                    return new Date(yil, ay, gun);
+                }
+            }
+            
+            var d = new Date(str);
+            if (!isNaN(d.getTime())) return d;
+            return null;
+        } catch(e) { return null; }
+    }
+
+    function formatTarihEkrana(tarihStr) {
+        var d = tarihAyristir(tarihStr);
+        if (!d) return "-";
+        var gun = String(d.getDate()).padStart(2, '0');
+        var ay = String(d.getMonth() + 1).padStart(2, '0');
+        var yil = d.getFullYear();
+        return gun + "." + ay + "." + yil;
+    }
+
+    function formatTarihInput(tarihStr) {
+        var d = tarihAyristir(tarihStr);
+        if (!d || isNaN(d.getTime())) return "";
+        var gun = String(d.getDate()).padStart(2, '0');
+        var ay = String(d.getMonth() + 1).padStart(2, '0');
+        var yil = d.getFullYear();
+        return yil + "-" + ay + "-" + gun;
     }
 
     function girisYap() {
-        aktifFirma = document.getElementById("firmaAdi").value.trim();
+        var inputVal = document.getElementById("firmaAdi").value.trim();
         girilenSifre = document.getElementById("firmaPass").value.trim();
 
-        if(!aktifFirma) return alert("Lütfen firma adınızı girin.");
+        if(!inputVal) return alert("Lütfen firma adınızı girin.");
         if(!girilenSifre) return alert("Lütfen şifrenizi girin.");
 
-        if(aktifFirma.toUpperCase() === "ADMIN") {
+        if(inputVal.toUpperCase() === "ADMIN") {
             if(girilenSifre === ADMIN_SIFRE) {
                 document.getElementById("loginSection").classList.add("d-none");
                 document.getElementById("headerSection").classList.add("d-none");
@@ -278,26 +399,23 @@
                 alert("Hatalı yönetici şifresi!");
             }
         } else {
-            isleriListele();
+            isleriListele(inputVal, girilenSifre);
         }
     }
 
-    function isleriListele() {
+    function isleriListele(firma, sifre) {
+        aktifFirma = firma;
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
         document.getElementById("headerSection").classList.add("d-none");
         document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
-        document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Veriler yükleniyor...</p></div>';
+        document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Yükleniyor...</p></div>';
 
-        jsonpIstek({ action: "read", firma: aktifFirma, sifre: girilenSifre }, "okumaGeriDonus", function(res) {
-            if (Array.isArray(res)) {
-                mevcutIsler = res;
-                kartlariEkranaBas();
-            } else {
-                alert("Veriler yüklenirken hata oluştu: " + (res.message || "Bilinmeyen hata"));
-                location.reload();
-            }
-        });
+        scriptTemizle();
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&sifre=" + encodeURIComponent(sifre) + "&callback=veriGeriDonusIsle";
+        document.body.appendChild(script); 
     }
 
     function sifreModalAc() { document.getElementById("sifreModal").classList.remove("d-none"); }
@@ -307,45 +425,194 @@
         document.getElementById("supplierFileInput").value = "";
         document.getElementById("supplierExcelModal").classList.remove("d-none"); 
     }
-    function supplierExcelModalKapat() { 
-        document.getElementById("supplierExcelModal").classList.add("d-none");
-        isleriListele();
-    }
+    function supplierExcelModalKapat() { document.getElementById("supplierExcelModal").classList.add("d-none"); }
 
     function sifreGuncelle() {
         var p1 = document.getElementById("newPass1").value.trim();
         var p2 = document.getElementById("newPass2").value.trim();
+
         if(!p1 || !p2) return alert("Şifre alanlarını doldurun.");
         if(p1 !== p2) return alert("Şifreler uyuşmuyor!");
 
-        jsonpIstek({ action: "changePassword", firma: aktifFirma, yeniSifre: p1 }, "sifreGuncelleDonus", function(res) {
-            if(res && res.status === "success") {
-                alert("Şifreniz başarıyla değiştirildi!");
-                sifreModalKapat();
-                girilenSifre = p1;
-                document.getElementById("newPass1").value = "";
-                document.getElementById("newPass2").value = "";
-            } else {
-                alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
-            }
-        });
+        scriptTemizle();
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = API_URL + "?action=changePassword&firma=" + encodeURIComponent(aktifFirma) + "&yeniSifre=" + encodeURIComponent(p1) + "&callback=sifreSonuc";
+        document.body.appendChild(script);
     }
 
-    function formatVeri(deger) {
-        if (deger === undefined || deger === null) return "-";
-        var str = String(deger).trim();
-        return str === "" ? "-" : str;
+    function sifreSonuc(res) {
+        scriptTemizle();
+        if(res && res.status === "success") {
+            alert("Şifreniz başarıyla değiştirildi!");
+            sifreModalKapat();
+            girilenSifre = document.getElementById("newPass1").value.trim();
+        } else {
+            alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
+        }
     }
 
-    function formatTarihInput(tarihStr) {
-        if (!tarihStr) return "";
-        try {
-            var d = new Date(tarihStr);
-            if (!isNaN(d.getTime())) {
-                return d.toISOString().split("T")[0];
+    function supplierExcelYukle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusDiv = document.getElementById("supplierUploadStatus");
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Excel ayrıştırılıyor...</p>';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            topluGuncellenecekler = [];
+
+            jsonData.forEach(row => {
+                var satirNo = row["Satır No"] || row["Satir No"] || row["ID"];
+                var ilgiliNo = row["İlgili Numarası"] || row["İlgili No"] || row["Il_No"] || "";
+                if (satirNo) {
+                    var tTarih = row["Teslim Tarihi"] || row["Teslimtarihi"] || "";
+                    if (tTarih && String(tTarih).includes(".")) {
+                        var p = String(tTarih).split(".");
+                        if (p.length === 3) tTarih = p[2] + "-" + p[1] + "-" + p[0];
+                    }
+
+                    // Bulunan orijinal kaydı eşleştir
+                    var orijinal = mevcutIsler.find(x => x.id == String(satirNo) || x.ilgiliNo == String(ilgiliNo));
+
+                    topluGuncellenecekler.push({
+                        id: String(satirNo),
+                        ilgiliNo: String(ilgiliNo),
+                        sprsno: orijinal ? orijinal.sprsno : "-",
+                        tanim: orijinal ? orijinal.tanim : "-",
+                        eskiDurum: orijinal ? orijinal.firmadurumu : "-",
+                        yeniDurum: row["Firma Durumu"] || row["Durum"] || "Bekliyor",
+                        eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
+                        yeniMiktar: row["Üretilen Miktar"] || row["Miktar"] || "0",
+                        eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
+                        yeniTarih: formatTarihEkrana(tTarih),
+                        teslimTarihi: tTarih,
+                        not: row["Yan Sanayi Notu"] || row["Not"] || ""
+                    });
+                }
+            });
+
+            if (topluGuncellenecekler.length === 0) {
+                statusDiv.innerHTML = '<div style="color:var(--danger);">Geçerli veri bulunamadı.</div>';
+                return;
             }
-        } catch(e) {}
-        return "";
+
+            mevcutPaketIndex = 0;
+            sonrakiPaketiGonder();
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function sonrakiPaketiGonder() {
+        const statusDiv = document.getElementById("supplierUploadStatus");
+        var toplam = topluGuncellenecekler.length;
+        var baslangic = mevcutPaketIndex * paketBoyutu;
+        
+        if (baslangic >= toplam) {
+            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">Detaylı e-posta raporu gönderiliyor...</p>';
+            detayliMailGonder(topluGuncellenecekler, function() {
+                statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla güncellendi!</div>';
+                setTimeout(function() {
+                    supplierExcelModalKapat();
+                    isleriListele(aktifFirma, girilenSifre);
+                }, 1200);
+            });
+            return;
+        }
+
+        var bitis = Math.min(baslangic + paketBoyutu, toplam);
+        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">' + bitis + ' / ' + toplam + ' kalem güncelleniyor...</p>';
+
+        scriptTemizle();
+        const payload = encodeURIComponent(JSON.stringify(dilim));
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=supplierPaketGeriDonus";
+        document.body.appendChild(script);
+    }
+
+    function supplierPaketGeriDonus(res) {
+        scriptTemizle();
+        if (res && res.status === "success") {
+            mevcutPaketIndex++;
+            sonrakiPaketiGonder();
+        } else {
+            const statusDiv = document.getElementById("supplierUploadStatus");
+            statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Hata oluştu! ' + (res.message || "") + '</div>';
+        }
+    }
+
+    function detayliMailGonder(detaylarDizi, callbackFn) {
+        scriptTemizle();
+        window.mailCallbackTamam = function(res) {
+            scriptTemizle();
+            if (callbackFn) callbackFn();
+        };
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        const payload = encodeURIComponent(JSON.stringify(detaylarDizi));
+        script.src = API_URL + "?action=sendMail&firma=" + encodeURIComponent(aktifFirma) + "&detaylar=" + payload + "&callback=mailCallbackTamam";
+        document.body.appendChild(script);
+    }
+
+    function jdeExcelYukle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusDiv = document.getElementById("uploadStatus");
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary);">Güncelleniyor...</p>';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+            if (jsonData.length > 0) jsonData.shift();
+
+            scriptTemizle();
+            const payload = encodeURIComponent(JSON.stringify(jsonData));
+            const script = document.createElement('script');
+            script.className = 'jsonp-temp';
+            script.src = API_URL + "?action=upload&excelData=" + payload + "&callback=uploadTamamlandi";
+            document.body.appendChild(script);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function uploadTamamlandi(res) {
+        scriptTemizle();
+        const statusDiv = document.getElementById("uploadStatus");
+        if (res && res.status === "success") {
+            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Güncellendi!</div>';
+            alert("Google Sheets JDE verileriyle güncellendi!");
+        } else {
+            statusDiv.innerHTML = '<div style="color:var(--danger); font-weight:700;">Hata!</div>';
+            alert("Hata: " + (res.message || "Bilinmeyen hata"));
+        }
+    }
+
+    function veriGeriDonusIsle(data) {
+        scriptTemizle();
+        if (data.error) {
+            alert("Erişim Engellendi: " + data.error);
+            location.reload();
+            return;
+        }
+
+        mevcutIsler = data;
+        kartlariEkranaBas();
     }
 
     function kartlariEkranaBas() {
@@ -359,53 +626,69 @@
                 formatVeri(is.tanim).toLowerCase().includes(aramaMetni) ||
                 formatVeri(is.ilgiliNo).toLowerCase().includes(aramaMetni)
             );
+            
             var durumUyum = true;
             if (aktifDurumFiltresi === "Bekliyor") durumUyum = (fDurum === "Bekliyor");
             else if (aktifDurumFiltresi === "Uretimde") durumUyum = (fDurum === "Uretimde" || fDurum === "Üretimde");
             else if (aktifDurumFiltresi === "Bitti") durumUyum = (fDurum === "Bitti");
+
             return aramaUyum && durumUyum;
         });
 
         document.getElementById("totalCount").innerText = "(" + filtrelenmis.length + " / " + mevcutIsler.length + " Kalem)";
 
         if(filtrelenmis.length === 0) {
-            html = '<div style="background:#fff; border:1px solid var(--border-color); padding:16px; border-radius:8px; text-align:center; color:var(--text-muted);">Uygun iş emri bulunamadı.</div>';
+            html = '<div style="background-color:#fff; border:1px solid var(--border-color); padding:16px; border-radius:8px; text-align:center; color:var(--text-muted); font-size:13px;">Uygun iş emri bulunamadı.</div>';
         } else {
             filtrelenmis.forEach(function(is) {
                 var cardId = formatVeri(is.id);
                 var fDurum = formatVeri(is.firmadurumu);
                 var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
                 var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
-                var teslimTarihInput = formatTarihInput(is.teslimtarihi);
                 
-                var ilgiliNo = formatVeri(is.ilgiliNo || is.ilgili_no || is.ilgiliNumara);
-                var sprsNo = formatVeri(is.sprsno || is.siparisNo || is.sprsNo);
-                var tanimMetni = formatVeri(is.tanim || is.satirTanimi || is.aciklama);
+                var teslimTarihInput = formatTarihInput(is.teslimtarihi);
+                var ilgiliNo = is.ilgiliNo ? formatVeri(is.ilgiliNo) : "-";
 
                 var badgeClass = "badge-bekliyor";
                 if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
                 if(fDurum === "Bitti") badgeClass = "badge-bitti";
 
-                html += '<div class="card" id="card_' + cardId + '">' +
+                html += '<div class="card" id="card_' + cardId + '" data-ilgilino="' + ilgiliNo + '">' +
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center gap-2">' +
-                            '<span class="badge ' + badgeClass + '" id="badge_' + cardId + '">' + fDurum + '</span>' +
-                            '<strong>' + tanimMetni + '</strong>' +
-                            '<span class="info-pill">Sp No: <b>' + sprsNo + '</b></span>' +
+                            '<span class="badge ' + badgeClass + '">' + fDurum + '</span>' +
+                            '<strong style="color:var(--text-main); font-size:14px;">' + formatVeri(is.tanim) + '</strong>' +
+                            '<span class="info-pill">Sp Tp: <b>' + formatVeri(is.sptp) + '</b></span>' +
+                            '<span class="info-pill">Sp No: <b>' + formatVeri(is.sprsno) + '</b></span>' +
                             '<span class="info-pill">İlgili No: <b style="color:var(--primary);">' + ilgiliNo + '</b></span>' +
                         '</div>' +
-                        '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + formatVeri(is.ob) + '</span>' +
+                        '<div class="d-flex align-items-center gap-2">' +
+                            '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + formatVeri(is.ob) + '</span>' +
+                        '</div>' +
                     '</div>' +
+
                     '<div class="d-flex gap-2 align-items-center" style="margin-top:6px;">' +
-                        '<div style="width:130px;"><select id="durum_' + cardId + '" class="form-select" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
-                            '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
-                            '<option value="Uretimde" ' + (fDurum=='Uretimde' || fDurum=='Üretimde'?'selected':'') + '>Üretimde</option>' +
-                            '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
-                        '</select></div>' +
-                        '<div style="width:90px;"><input type="number" id="adet_' + cardId + '" class="form-control" value="' + miktar + '" oninput="degisiklikVurgula(\'' + cardId + '\')"></div>' +
-                        '<div style="width:130px;"><input type="date" id="teslim_' + cardId + '" class="form-control" value="' + teslimTarihInput + '" onchange="degisiklikVurgula(\'' + cardId + '\')"></div>' +
-                        '<div style="flex:1;"><input type="text" id="not_' + cardId + '" class="form-control" placeholder="Not..." value="' + notIcerigi + '" oninput="degisiklikVurgula(\'' + cardId + '\')"></div>' +
-                        '<div><button onclick="tekliKaydet(\'' + cardId + '\')" class="btn btn-success" style="padding:6px 12px; font-size:12px;"><i class="fa-solid fa-check"></i> Kaydet</button></div>' +
+                        '<div style="width:130px;">' +
+                            '<select id="durum_' + cardId + '" class="form-select" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
+                                '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
+                                '<option value="Uretimde" ' + (fDurum=='Uretimde' || fDurum=='Üretimde'?'selected':'') + '>Üretimde</option>' +
+                                '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
+                            '</select>' +
+                        '</div>' +
+                        '<div style="width:90px;">' +
+                            '<input type="number" id="adet_' + cardId + '" class="form-control" placeholder="Miktar" value="' + miktar + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
+                        '</div>' +
+                        '<div style="width:130px;">' +
+                            '<input type="date" id="teslim_' + cardId + '" class="form-control" value="' + teslimTarihInput + '" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
+                        '</div>' +
+                        '<div style="flex:1;">' +
+                            '<input type="text" id="not_' + cardId + '" class="form-control" placeholder="Not ekleyin..." value="' + notIcerigi + '" oninput="degisiklikVurgula(\'' + cardId + '\')">' +
+                        '</div>' +
+                        '<div>' +
+                            '<button onclick="tekliKaydet(\'' + cardId + '\')" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;" title="Bu Satırı Kaydet">' +
+                                '<i class="fa-solid fa-check"></i> Kaydet' +
+                            '</button>' +
+                        '</div>' +
                     '</div>' +
                 '</div>';
             });
@@ -413,145 +696,261 @@
         document.getElementById("isKartlari").innerHTML = html;
     }
 
-    function degisiklikVurgula(cardId) {
-        document.getElementById("card_" + cardId).classList.add("modified");
-    }
-
     function tekliKaydet(cardId) {
-        var veri = {
-            id: String(cardId),
-            yeniDurum: document.getElementById("durum_" + cardId).value,
-            yeniMiktar: document.getElementById("adet_" + cardId).value,
-            teslimTarihi: document.getElementById("teslim_" + cardId).value,
-            not: document.getElementById("not_" + cardId).value
+        var cardElem = document.getElementById("card_" + cardId);
+        var ilgiliNoVal = cardElem ? cardElem.getAttribute("data-ilgilino") : "";
+        var orijinal = mevcutIsler.find(x => x.id == String(cardId) || x.ilgiliNo == String(ilgiliNoVal));
+
+        var yeniDurum = document.getElementById("durum_" + cardId).value;
+        var yeniMiktar = document.getElementById("adet_" + cardId).value;
+        var yeniTarihVal = document.getElementById("teslim_" + cardId).value;
+        var notVal = document.getElementById("not_" + cardId).value;
+
+        var detayObj = [{
+            id: cardId,
+            ilgiliNo: ilgiliNoVal,
+            sprsno: orijinal ? orijinal.sprsno : "-",
+            tanim: orijinal ? orijinal.tanim : "-",
+            eskiDurum: orijinal ? orijinal.firmadurumu : "-",
+            yeniDurum: yeniDurum,
+            eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
+            yeniMiktar: yeniMiktar,
+            eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
+            yeniTarih: formatTarihEkrana(yeniTarihVal),
+            teslimTarihi: yeniTarihVal,
+            not: notVal
+        }];
+
+        scriptTemizle();
+        const payload = encodeURIComponent(JSON.stringify(detayObj));
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        
+        window.tekliKaydetGeriDonus = function(res) {
+            scriptTemizle();
+            if (res && res.status === "success") {
+                detayliMailGonder(detayObj, function() {
+                    alert("Satır başarıyla kaydedildi ve detaylı rapor e-postası gönderildi!");
+                    isleriListele(aktifFirma, girilenSifre);
+                });
+            } else {
+                alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
+            }
         };
 
-        jsonpIstek({ action: "update", data: JSON.stringify([veri]) }, "tekliKaydetDonus", function(res) {
-            if (res && res.status === "success") {
-                alert("Satır başarıyla kaydedildi!");
-                isleriListele();
-            } else {
-                alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
-            }
-        });
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=tekliKaydetGeriDonus";
+        document.body.appendChild(script);
     }
 
     function topluKaydet() {
-        const degisenKartlar = document.querySelectorAll('.card.modified');
-        if (degisenKartlar.length === 0) return alert("Değişen kayıt yok.");
-
+        if (mevcutIsler.length === 0) return alert("Kaydedilecek veri yok.");
+        
         let guncellenecekler = [];
+        const degisenKartlar = document.querySelectorAll('.card.modified');
+        
+        if (degisenKartlar.length === 0) {
+            return alert("Herhangi bir değişiklik yapmadınız.");
+        }
+
         degisenKartlar.forEach(function(kart) {
             var cardId = kart.id.replace('card_', '');
+            var ilgiliNoVal = kart.getAttribute("data-ilgilino") || "";
+            var orijinal = mevcutIsler.find(x => x.id == String(cardId) || x.ilgiliNo == String(ilgiliNoVal));
+
+            var yeniDurum = document.getElementById("durum_" + cardId).value;
+            var yeniMiktar = document.getElementById("adet_" + cardId).value;
+            var yeniTarihVal = document.getElementById("teslim_" + cardId).value;
+            var notVal = document.getElementById("not_" + cardId).value;
+            
             guncellenecekler.push({
-                id: String(cardId),
-                yeniDurum: document.getElementById("durum_" + cardId).value,
-                yeniMiktar: document.getElementById("adet_" + cardId).value,
-                teslimTarihi: document.getElementById("teslim_" + cardId).value,
-                not: document.getElementById("not_" + cardId).value
+                id: cardId,
+                ilgiliNo: ilgiliNoVal,
+                sprsno: orijinal ? orijinal.sprsno : "-",
+                tanim: orijinal ? orijinal.tanim : "-",
+                eskiDurum: orijinal ? orijinal.firmadurumu : "-",
+                yeniDurum: yeniDurum,
+                eskiMiktar: orijinal ? orijinal.uretilendir_miktar : "0",
+                yeniMiktar: yeniMiktar,
+                eskiTarih: orijinal ? formatTarihEkrana(orijinal.teslimtarihi) : "-",
+                yeniTarih: formatTarihEkrana(yeniTarihVal),
+                teslimTarihi: yeniTarihVal,
+                not: notVal
             });
         });
+
+        topluGuncellenecekler = guncellenecekler;
+        mevcutPaketIndex = 0;
 
         const btn = document.getElementById("btnTopluKaydet");
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+        btn.disabled = true;
 
-        jsonpIstek({ action: "update", data: JSON.stringify(guncellenecekler) }, "topluKaydetDonus", function(res) {
+        var baslangic = mevcutPaketIndex * paketBoyutu;
+        var bitis = Math.min(baslangic + paketBoyutu, topluGuncellenecekler.length);
+        var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+
+        scriptTemizle();
+        const payload = encodeURIComponent(JSON.stringify(dilim));
+        const script = document.createElement('script');
+        script.className = 'jsonp-temp';
+        script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
+        document.body.appendChild(script);
+    }
+
+    function topluKaydetPaketGeriDonus(res) {
+        scriptTemizle();
+        if (res && res.status === "success") {
+            mevcutPaketIndex++;
+            var toplam = topluGuncellenecekler.length;
+            var baslangic = mevcutPaketIndex * paketBoyutu;
+            
+            if (baslangic >= toplam) {
+                detayliMailGonder(topluGuncellenecekler, function() {
+                    const btn = document.getElementById("btnTopluKaydet");
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+                    btn.disabled = false;
+                    alert("Güncellemeler başarıyla kaydedildi ve rapor e-postası gönderildi!");
+                    isleriListele(aktifFirma, girilenSifre);
+                });
+            } else {
+                var bitis = Math.min(baslangic + paketBoyutu, toplam);
+                var dilim = topluGuncellenecekler.slice(baslangic, bitis);
+                const payload = encodeURIComponent(JSON.stringify(dilim));
+                const script = document.createElement('script');
+                script.className = 'jsonp-temp';
+                script.src = API_URL + "?action=update&data=" + payload + "&callback=topluKaydetPaketGeriDonus";
+                document.body.appendChild(script);
+            }
+        } else {
+            const btn = document.getElementById("btnTopluKaydet");
             btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
             btn.disabled = false;
+            alert("Kayıt sırasında bir hata oluştu: " + (res.message || "Bilinmeyen hata"));
+        }
+    }
 
-            if (res && res.status === "success") {
-                alert("Tüm değişiklikler başarıyla kaydedildi!");
-                isleriListele();
-            } else {
-                alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
-            }
+    function urunOnerileriGoster() {
+        const listDiv = document.getElementById("autocompleteList");
+        const aramaVal = document.getElementById("aramaKutusu").value.toLowerCase();
+        
+        let benzersizTanimlar = [...new Set(mevcutIsler.map(is => formatVeri(is.tanim)).filter(t => t !== "-"))];
+        
+        if (aramaVal.trim() !== "") {
+            benzersizTanimlar = benzersizTanimlar.filter(t => t.toLowerCase().includes(aramaVal));
+        }
+
+        if (benzersizTanimlar.length === 0) {
+            listDiv.classList.add("d-none");
+            listDiv.innerHTML = "";
+            return;
+        }
+
+        let html = "";
+        benzersizTanimlar.forEach(tanim => {
+            html += `<div onclick="urunSec('${tanim}')">${tanim}</div>`;
         });
+
+        listDiv.innerHTML = html;
+        listDiv.classList.remove("d-none");
     }
 
-    function excelIndir() {
-        window.open(API_URL + "?action=read&firma=ADMIN&sifre=1234", "_blank");
+    function urunSec(tanim) {
+        document.getElementById("aramaKutusu").value = tanim;
+        document.getElementById("autocompleteList").classList.add("d-none");
+        kartlariFiltrele();
     }
 
-    function supplierExcelYukle(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const statusDiv = document.getElementById("supplierUploadStatus");
-        statusDiv.innerHTML = '<div class="spinner"></div><p>Yükleniyor...</p>';
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest('.autocomplete-container')) {
+            const listDiv = document.getElementById("autocompleteList");
+            if (listDiv) listDiv.classList.add("d-none");
+        }
+    });
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            let guncellenecekler = [];
-
-            jsonData.forEach(row => {
-                let satirNo = null;
-                let hamDurum = "Bekliyor";
-                let yeniMiktar = "0";
-                let tTarih = "";
-                let notVal = "";
-
-                for (let key in row) {
-                    let k = key.toLowerCase().trim();
-                    if (k.includes("satır no") || k.includes("satir no") || k === "id") satirNo = row[key];
-                    if (k.includes("durum")) hamDurum = row[key];
-                    if (k.includes("miktar") || k.includes("üretilen")) yeniMiktar = row[key];
-                    if (k.includes("tarih")) tTarih = row[key];
-                    if (k.includes("not")) notVal = row[key];
-                }
-
-                if (satirNo) {
-                    guncellenecekler.push({
-                        id: String(satirNo),
-                        yeniDurum: hamDurum,
-                        yeniMiktar: String(yeniMiktar),
-                        teslimTarihi: tTarih,
-                        not: String(notVal)
-                    });
-                }
-            });
-
-            jsonpIstek({ action: "update", data: JSON.stringify(guncellenecekler) }, "excelYukleDonus", function(res) {
-                if (res && res.status === "success") {
-                    statusDiv.innerHTML = '<div style="color:var(--success);">Başarıyla kaydedildi!</div>';
-                    setTimeout(() => supplierExcelModalKapat(), 1200);
-                } else {
-                    statusDiv.innerHTML = '<div style="color:var(--danger);">Hata: ' + res.message + '</div>';
-                }
-            });
-        };
-        reader.readAsArrayBuffer(file);
+    function degisiklikVurgula(cardId) {
+        const cardElem = document.getElementById("card_" + cardId);
+        if (cardElem) cardElem.classList.add("modified");
     }
 
-    function jdeExcelYukle(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const statusDiv = document.getElementById("uploadStatus");
-        statusDiv.innerHTML = '<div class="spinner"></div><p>JDE güncelleniyor...</p>';
-
-        const readerObj = new FileReader();
-        readerObj.onload = function(e) {
-            const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-
-            jsonpIstek({ action: "upload", excelData: JSON.stringify(jsonData) }, "jdeYukleDonus", function(res) {
-                if (res && res.status === "success") {
-                    statusDiv.innerHTML = '<div style="color:var(--success);">Güncellendi!</div>';
-                    alert("JDE verileri başarıyla yüklendi!");
-                } else {
-                    statusDiv.innerHTML = '<div style="color:var(--danger);">Hata!</div>';
-                }
-            });
-        };
-        readerObj.readAsArrayBuffer(file);
+    function kartlariFiltrele() { 
+        urunOnerileriGoster(); 
+        kartlariEkranaBas(); 
     }
-
+    
     function durumFiltrele(durum, btnElem) {
         aktifDurumFiltresi = durum;
         document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
         btnElem.classList.add('active');
         kartlariEkranaBas();
+    }
+
+    async function excelIndir() {
+        if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
+        
+        const btn = document.getElementById("btnExcelIndir");
+        const orjinalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hazırlanıyor...';
+        btn.disabled = true;
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('İş Listesi');
+
+            worksheet.columns = [
+                { header: 'Satır No', key: 'id', width: 10 },
+                { header: 'İlgili Numarası', key: 'ilgiliNo', width: 14 },
+                { header: 'Sipariş No', key: 'sprsno', width: 12 },
+                { header: 'Tanım', key: 'tanim', width: 24 },
+                { header: 'Bakiye', key: 'ob', width: 10 },
+                { header: 'Teslim Tarihi', key: 'teslimtarihi', width: 14 },
+                { header: 'Firma Durumu', key: 'firmadurumu', width: 16 },
+                { header: 'Üretilen Miktar', key: 'uretilendir_miktar', width: 14 },
+                { header: 'Yan Sanayi Notu', key: 'yansanayinotu', width: 28 }
+            ];
+
+            mevcutIsler.forEach(is => {
+                var tTar = is.teslimtarihi || "";
+
+                worksheet.addRow({
+                    id: is.id,
+                    ilgiliNo: is.ilgiliNo,
+                    sprsno: is.sprsno,
+                    tanim: is.tanim,
+                    ob: is.ob,
+                    teslimtarihi: formatTarihEkrana(tTar),
+                    firmadurumu: is.firmadurumu,
+                    uretilendir_miktar: is.uretilendir_miktar,
+                    yansanayinotu: is.yansanayinotu
+                });
+            });
+
+            const totalRows = mevcutIsler.length + 1;
+            for (let i = 2; i <= totalRows; i++) {
+                const cell = worksheet.getCell(`G${i}`);
+                cell.dataValidation = {
+                    type: 'list',
+                    allowBlank: true,
+                    formulae: ['"Bekliyor,Üretimde,Bitti"'],
+                    showErrorMessage: true,
+                    errorTitle: 'Geçersiz Giriş',
+                    error: 'Lütfen listeden geçerli bir durum seçiniz (Bekliyor, Üretimde, Bitti).'
+                };
+            }
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = aktifFirma + "_Is_Listesi.xlsx";
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+        } catch (err) {
+            alert("Excel oluşturulurken bir hata oluştu: " + err.message);
+        } finally {
+            btn.innerHTML = orjinalHtml;
+            btn.disabled = false;
+        }
     }
 </script>
 </body>
