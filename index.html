@@ -315,7 +315,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz05ShnbhUAV-ZCM4qZbPvY6h6x5KpAK6JlGiay22ONNtMveQiU8IB-YlCMC8odnnVu/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbwf2S-V72NaEUrJ5EekD_RiMSRRiHqsFHu-kPAX63gItB-ZR_1NaoapXpvsTAbxPJTe/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -539,7 +539,6 @@
             
             setTimeout(function() {
                 supplierExcelModalKapat();
-                // 1.5 saniye gecikme ekleyerek Google Sheets önbelleğinin güncellenmesine zaman tanıyoruz
                 setTimeout(function() {
                     isleriListele(aktifFirma, girilenSifre);
                 }, 1500);
@@ -757,7 +756,6 @@
             if (res && res.status === "success") {
                 alert("Satır başarıyla kaydedildi!");
                 
-                // 1.5 saniye gecikme ile taze verileri yüklüyoruz
                 setTimeout(function() {
                     isleriListele(aktifFirma, girilenSifre);
                 }, 1500);
@@ -845,7 +843,6 @@
                 
                 alert("Değişiklikler başarıyla kaydedildi!");
                 
-                // 1.5 saniye gecikme ile taze verileri yüklüyoruz
                 setTimeout(function() {
                     isleriListele(aktifFirma, girilenSifre);
                 }, 1500);
@@ -967,7 +964,7 @@
                 });
             });
 
-            const totalRows = mevcutIsler.keys ? mevcutIsler.length + 1 : mevcutIsler.length + 1;
+            const totalRows = mevcutIsler.length + 1;
             for (let i = 2; i <= totalRows; i++) {
                 const cell = worksheet.getCell(`G${i}`);
                 cell.dataValidation = {
@@ -981,7 +978,7 @@
             }
 
             const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' dx });
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = aktifFirma + "_Is_Listesi.xlsx";
