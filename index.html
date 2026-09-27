@@ -313,7 +313,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz9m6hU8-r8WelirXFb9HwYjtkEM8rZJR2mC3N2o17Wc1zW1Ngx2w_bqDo-k57gNHnJ/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbz05ShnbhUAV-ZCM4qZbPvY6h6x5KpAK6JlGiay22ONNtMveQiU8IB-YlCMC8odnnVu/exec"; 
     const ADMIN_SIFRE = "1234"; 
 
     let aktifFirma = "";
@@ -322,7 +322,7 @@
     let aktifDurumFiltresi = "Tumu";
 
     let topluGuncellenecekler = [];
-    let paketBoyutu = 20; 
+    let paketBoyutu = 40; 
     let mevcutPaketIndex = 0;
 
     function scriptTemizle() {
@@ -529,21 +529,27 @@
         var baslangic = mevcutPaketIndex * paketBoyutu;
         
         if (baslangic >= toplam) {
-            statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">E-posta raporu hazırlanıyor...</p>';
-            detayliMailGonder(topluGuncellenecekler, function() {
-                statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla güncellendi!</div>';
-                setTimeout(function() {
-                    supplierExcelModalKapat();
-                    isleriListele(aktifFirma, girilenSifre);
-                }, 1200);
-            });
+            // Önce kayıt tamamlandı bilgisini verip modalı kapatıyoruz, sonra mail onayı soruyoruz!
+            statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla kaydedildi!</div>';
+            
+            setTimeout(function() {
+                supplierExcelModalKapat();
+                isleriListele(aktifFirma, girilenSifre);
+                
+                // Kayıt bittikten sonra e-posta gönderimi için onay soruyoruz
+                if (confirm("Verileriniz başarıyla kaydedildi. Yapılan değişiklikleri e-posta ile rapor olarak göndermek ister misiniz?")) {
+                    detayliMailGonder(topluGuncellenecekler, function() {
+                        alert("Rapor e-postası başarıyla gönderildi!");
+                    });
+                }
+            }, 1000);
             return;
         }
 
         var bitis = Math.min(baslangic + paketBoyutu, toplam);
         var dilim = topluGuncellenecekler.slice(baslangic, bitis);
 
-        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">' + bitis + ' / ' + toplam + ' kalem güncelleniyor...</p>';
+        statusDiv.innerHTML = '<div class="spinner"></div><p style="color:var(--primary); font-weight:600;">' + bitis + ' / ' + toplam + ' kalem kaydediliyor...</p>';
 
         scriptTemizle();
         const payload = encodeURIComponent(JSON.stringify(dilim));
@@ -742,10 +748,14 @@
         window.tekliKaydetGeriDonus = function(res) {
             scriptTemizle();
             if (res && res.status === "success") {
-                detayliMailGonder(detayObj, function() {
-                    alert("Satır başarıyla kaydedildi ve detaylı rapor e-postası gönderildi!");
-                    isleriListele(aktifFirma, girilenSifre);
-                });
+                alert("Satır başarıyla kaydedildi!");
+                isleriListele(aktifFirma, girilenSifre);
+                
+                if (confirm("Bu değişikliği e-posta ile bildirmek ister misiniz?")) {
+                    detayliMailGonder(detayObj, function() {
+                        alert("Rapor e-postası gönderildi!");
+                    });
+                }
             } else {
                 alert("Kayıt sırasında hata oluştu: " + (res.message || "Bilinmeyen hata"));
             }
@@ -818,13 +828,18 @@
             var baslangic = mevcutPaketIndex * paketBoyutu;
             
             if (baslangic >= toplam) {
-                detayliMailGonder(topluGuncellenecekler, function() {
-                    const btn = document.getElementById("btnTopluKaydet");
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-                    btn.disabled = false;
-                    alert("Güncellemeler başarıyla kaydedildi ve rapor e-postası gönderildi!");
-                    isleriListele(aktifFirma, girilenSifre);
-                });
+                const btn = document.getElementById("btnTopluKaydet");
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
+                btn.disabled = false;
+                
+                alert("Değişiklikler başarıyla kaydedildi!");
+                isleriListele(aktifFirma, girilenSifre);
+                
+                if (confirm("Toplu güncelleme kaydedildi. Raporu e-posta ile göndermek ister misiniz?")) {
+                    detayliMailGonder(topluGuncellenecekler, function() {
+                        alert("Rapor e-postası başarıyla gönderildi!");
+                    });
+                }
             } else {
                 var bitis = Math.min(baslangic + paketBoyutu, toplam);
                 var dilim = topluGuncellenecekler.slice(baslangic, bitis);
@@ -898,7 +913,7 @@
     }
 
     async function excelIndir() {
-        if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
+        if (mevcutIsler.length === 0) return alert("Indirilecek veri yok.");
         
         const btn = document.getElementById("btnExcelIndir");
         const orjinalHtml = btn.innerHTML;
