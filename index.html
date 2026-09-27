@@ -90,6 +90,7 @@
         .btn-danger { background-color: var(--danger); }
         .btn-warning { background-color: var(--warning); color: #fff; }
         .btn-info { background-color: #0284c7; }
+        .btn-secondary { background-color: #475569; }
         
         .btn-filter { 
             background-color: #f1f5f9; 
@@ -249,6 +250,7 @@
                     <small style="color:var(--text-muted); margin-left:8px;" id="totalCount"></small>
                 </div>
                 <div class="d-flex gap-2">
+                    <button onclick="verileriYenile()" class="btn btn-secondary" title="Verileri Yenile"><i class="fa-solid fa-rotate"></i> Verileri Yenile</button>
                     <button onclick="supplierExcelModalAc()" class="btn btn-info"><i class="fa-solid fa-file-import"></i> Toplu Excel Yükle</button>
                     <button onclick="sifreModalAc()" class="btn btn-warning"><i class="fa-solid fa-key"></i> Şifre Değiştir</button>
                     <button onclick="excelIndir()" class="btn btn-excel" id="btnExcelIndir"><i class="fa-solid fa-file-excel"></i> Excel İndir</button>
@@ -322,7 +324,7 @@
     let aktifDurumFiltresi = "Tumu";
 
     let topluGuncellenecekler = [];
-    let paketBoyutu = 20; 
+    let paketBoyutu = 40; 
     let mevcutPaketIndex = 0;
 
     function scriptTemizle() {
@@ -416,6 +418,10 @@
         script.className = 'jsonp-temp';
         script.src = API_URL + "?action=read&firma=" + encodeURIComponent(aktifFirma) + "&sifre=" + encodeURIComponent(sifre) + "&callback=veriGeriDonusIsle";
         document.body.appendChild(script); 
+    }
+
+    function verileriYenile() {
+        isleriListele(aktifFirma, girilenSifre);
     }
 
     function sifreModalAc() { document.getElementById("sifreModal").classList.remove("d-none"); }
@@ -529,14 +535,15 @@
         var baslangic = mevcutPaketIndex * paketBoyutu;
         
         if (baslangic >= toplam) {
-            // Önce kayıt tamamlandı bilgisini verip modalı kapatıyoruz, sonra mail onayı soruyoruz!
             statusDiv.innerHTML = '<div style="color:var(--success); font-weight:700;"><i class="fa-solid fa-circle-check"></i> ' + toplam + ' kalem başarıyla kaydedildi!</div>';
             
             setTimeout(function() {
                 supplierExcelModalKapat();
-                isleriListele(aktifFirma, girilenSifre);
+                // 1.5 saniye gecikme ekleyerek Google Sheets önbelleğinin güncellenmesine zaman tanıyoruz
+                setTimeout(function() {
+                    isleriListele(aktifFirma, girilenSifre);
+                }, 1500);
                 
-                // Kayıt bittikten sonra e-posta gönderimi için onay soruyoruz
                 if (confirm("Verileriniz başarıyla kaydedildi. Yapılan değişiklikleri e-posta ile rapor olarak göndermek ister misiniz?")) {
                     detayliMailGonder(topluGuncellenecekler, function() {
                         alert("Rapor e-postası başarıyla gönderildi!");
@@ -749,7 +756,11 @@
             scriptTemizle();
             if (res && res.status === "success") {
                 alert("Satır başarıyla kaydedildi!");
-                isleriListele(aktifFirma, girilenSifre);
+                
+                // 1.5 saniye gecikme ile taze verileri yüklüyoruz
+                setTimeout(function() {
+                    isleriListele(aktifFirma, girilenSifre);
+                }, 1500);
                 
                 if (confirm("Bu değişikliği e-posta ile bildirmek ister misiniz?")) {
                     detayliMailGonder(detayObj, function() {
@@ -833,7 +844,11 @@
                 btn.disabled = false;
                 
                 alert("Değişiklikler başarıyla kaydedildi!");
-                isleriListele(aktifFirma, girilenSifre);
+                
+                // 1.5 saniye gecikme ile taze verileri yüklüyoruz
+                setTimeout(function() {
+                    isleriListele(aktifFirma, girilenSifre);
+                }, 1500);
                 
                 if (confirm("Toplu güncelleme kaydedildi. Raporu e-posta ile göndermek ister misiniz?")) {
                     detayliMailGonder(topluGuncellenecekler, function() {
@@ -913,7 +928,7 @@
     }
 
     async function excelIndir() {
-        if (mevcutIsler.length === 0) return alert("Indirilecek veri yok.");
+        if (mevcutIsler.length === 0) return alert("İndirilecek veri yok.");
         
         const btn = document.getElementById("btnExcelIndir");
         const orjinalHtml = btn.innerHTML;
@@ -952,7 +967,7 @@
                 });
             });
 
-            const totalRows = mevcutIsler.length + 1;
+            const totalRows = mevcutIsler.keys ? mevcutIsler.length + 1 : mevcutIsler.length + 1;
             for (let i = 2; i <= totalRows; i++) {
                 const cell = worksheet.getCell(`G${i}`);
                 cell.dataValidation = {
@@ -966,7 +981,7 @@
             }
 
             const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' dx });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = aktifFirma + "_Is_Listesi.xlsx";
