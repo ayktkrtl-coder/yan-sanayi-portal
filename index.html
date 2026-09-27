@@ -6,552 +6,188 @@
     <title>Yan Sanayi İş Takip Portalı</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
-
+        :root { --primary: #4f46e5; --bg: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --border-color: #e2e8f0; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
         * { box-sizing: border-box; }
-        body { 
-            background-color: var(--bg); 
-            font-family: 'Inter', -apple-system, sans-serif; 
-            margin: 0; padding: 0; 
-            color: var(--text-main);
-            -webkit-font-smoothing: antialiased;
-        }
-
+        body { background-color: var(--bg); font-family: 'Inter', sans-serif; margin: 0; padding: 0; color: var(--text-main); }
         .container { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
-        
-        .card { 
-            background-color: var(--card-bg); 
-            border-radius: 8px; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
-            border: 1px solid var(--border-color);
-            margin-bottom: 8px; padding: 10px 14px; 
-            border-left: 4px solid var(--primary); 
-            transition: all 0.15s ease;
-        }
-        .card:hover { border-color: #cbd5e1; }
-        .card.modified { 
-            border-left-color: var(--warning) !important; 
-            background-color: #fffbeb; 
-            border-color: #fde68a;
-        }
-
-        .form-control, .form-select { 
-            display: block; width: 100%; padding: 5px 8px; 
-            font-size: 13px; font-family: inherit;
-            color: var(--text-main); background-color: #fff;
-            border: 1px solid var(--border-color); border-radius: 6px; 
-        }
-        .form-control:focus, .form-select:focus {
-            outline: none; border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15);
-        }
-
-        .btn { 
-            display: inline-flex; align-items: center; justify-content: center;
-            gap: 6px; font-weight: 600; padding: 7px 14px; font-size: 13px; 
-            border-radius: 6px; border: none; cursor: pointer; color: #fff; 
-            transition: all 0.15s ease;
-        }
-        .btn:hover { opacity: 0.95; }
+        .card { background-color: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 8px; padding: 12px 16px; border-left: 4px solid var(--primary); }
+        .card.modified { border-left-color: var(--warning) !important; background-color: #fffbeb; }
+        .form-control, .form-select { display: block; width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid var(--border-color); border-radius: 6px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; color: #fff; }
         .btn-primary { background-color: var(--primary); width: 100%; font-size: 14px; padding: 10px; }
         .btn-success { background-color: var(--success); }
-        .btn-excel { background-color: #059669; }
         .btn-danger { background-color: var(--danger); }
-        .btn-warning { background-color: var(--warning); color: #fff; }
-        .btn-info { background-color: #0284c7; }
-        
-        .btn-filter { 
-            background-color: #f1f5f9; color: var(--text-muted); 
-            padding: 5px 12px; font-size: 12px; font-weight: 600; 
-            border-radius: 16px; border: 1px solid var(--border-color); cursor: pointer; 
-        }
-        .btn-filter.active { background-color: var(--primary); color: #fff; border-color: var(--primary); }
-
         .d-none { display: none !important; }
         .d-flex { display: flex !important; }
         .justify-content-between { justify-content: space-between !important; }
         .align-items-center { align-items: center !important; }
         .gap-2 { gap: 8px !important; }
-        
-        .badge { 
-            display: inline-block; padding: 2px 6px; font-size: 10px; 
-            font-weight: 700; border-radius: 4px; text-transform: uppercase;
-        }
+        .badge { padding: 3px 8px; font-size: 10px; font-weight: 700; border-radius: 4px; text-transform: uppercase; }
         .badge-bekliyor { background-color: #fef3c7; color: #d97706; }
         .badge-uretimde { background-color: #dbeafe; color: #2563eb; }
         .badge-bitti { background-color: #d1fae5; color: #059669; }
-
-        .info-pill {
-            background-color: #f1f5f9; padding: 2px 8px; border-radius: 4px;
-            font-size: 11px; color: var(--text-muted); border: 1px solid #e2e8f0;
-        }
-
-        .sticky-top-panel { 
-            position: sticky; top: 0; background: rgba(248, 250, 252, 0.95); 
-            backdrop-filter: blur(8px); z-index: 1000; padding: 10px 0; 
-            border-bottom: 1px solid var(--border-color); margin-bottom: 12px;
-        }
-
-        .spinner { 
-            border: 3px solid rgba(79, 70, 229, 0.1); width: 28px; height: 28px; 
-            border-radius: 50%; border-left-color: var(--primary); 
-            animation: spin 0.8s linear infinite; margin: 20px auto; 
-        }
+        .info-pill { background-color: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 11px; color: var(--text-muted); border: 1px solid #e2e8f0; }
+        .sticky-top { position: sticky; top: 0; background: rgba(248, 250, 252, 0.95); backdrop-filter: blur(8px); z-index: 100; padding: 10px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 12px; }
+        .spinner { border: 3px solid rgba(79, 70, 229, 0.1); width: 28px; height: 28px; border-radius: 50%; border-left-color: var(--primary); animation: spin 0.8s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .drop-zone {
-            border: 2px dashed var(--primary); border-radius: 8px; padding: 20px;
-            text-align: center; background-color: #f0f3ff; cursor: pointer;
-        }
-        
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000;
-        }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="text-center mb-2" id="headerSection" style="margin-bottom:16px;">
-        <h3 style="color:var(--primary); font-weight:700; margin:0;"><i class="fa-solid fa-boxes-stacked"></i> Yan Sanayi İş Takip Portalı</h3>
-    </div>
-
-    <!-- Login Section -->
     <div id="loginSection">
-        <div class="card" style="max-width: 380px; margin: 30px auto; padding: 24px; border-left: none;">
+        <div class="card" style="max-width: 380px; margin: 40px auto; padding: 24px; border-left: none;">
             <div style="text-align:center; margin-bottom:16px;">
-                <i class="fa-solid fa-building-user" style="font-size:32px; color:var(--primary);"></i>
-                <h4 style="margin:8px 0 2px 0;">Portal Girişi</h4>
+                <i class="fa-solid fa-building-user" style="font-size:36px; color:var(--primary);"></i>
+                <h3 style="margin:10px 0 4px 0;">Portal Girişi</h3>
             </div>
-            <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Tedarikçi Adı veya Yetkili Kodu:</label>
-            <input type="text" id="firmaAdi" class="form-control" style="margin-bottom:8px;" placeholder="Firma adınızı veya ADMIN yazın..." autocomplete="off">
-            
-            <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Giriş Şifresi:</label>
-            <input type="text" id="firmaPass" class="form-control" style="margin-bottom:12px; -webkit-text-security: disc;" placeholder="Şifreniz..." autocomplete="new-password" spellcheck="false">
-
-            <button onclick="girisYap()" id="btnListele" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
+            <label style="font-weight:600; font-size:12px; display:block; margin-bottom:4px;">Firma Adı:</label>
+            <input type="text" id="firmaAdi" class="form-control" style="margin-bottom:12px;" placeholder="Örn: EMO MAKINACILIK..." autocomplete="off">
+            <button onclick="girisYap()" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
         </div>
     </div>
 
-    <!-- Admin Panel Section -->
-    <div id="adminSection" class="d-none">
-        <div class="card" style="max-width: 500px; margin: 20px auto; padding: 24px;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 style="margin:0; color:var(--primary);"><i class="fa-solid fa-user-gear"></i> JDE Veri Güncelleme Paneli</h4>
-                <button onclick="location.reload()" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
-            </div>
-            
-            <div class="drop-zone" onclick="document.getElementById('excelFileInput').click()">
-                <i class="fa-solid fa-cloud-arrow-up" style="font-size:36px; color:var(--primary); margin-bottom:8px;"></i>
-                <h5 style="margin:0 0 4px 0;">JDE Excel Dosyasını Buraya Bırakın</h5>
-                <small style="color:var(--text-muted);">Veya seçmek için tıklayın (.xlsx / .csv)</small>
-                <input type="file" id="excelFileInput" class="d-none" accept=".xlsx, .xls, .csv" onchange="jdeExcelYukle(event)">
-            </div>
-            <div id="uploadStatus" style="margin-top:12px; text-align:center; font-size:13px;"></div>
-        </div>
-    </div>
-
-    <!-- Main Content Section -->
     <div id="listSection" class="d-none">
-        <div class="sticky-top-panel">
+        <div class="sticky-top">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span id="welcomeText" style="font-weight:700; color:var(--text-main); font-size:16px;"></span>
+                    <span id="welcomeText" style="font-weight:700; font-size:16px;"></span>
                     <small style="color:var(--text-muted); margin-left:8px;" id="totalCount"></small>
                 </div>
                 <div class="d-flex gap-2">
-                    <button onclick="supplierExcelModalAc()" class="btn btn-info"><i class="fa-solid fa-file-import"></i> Toplu Excel Yükle</button>
-                    <button onclick="sifreModalAc()" class="btn btn-warning"><i class="fa-solid fa-key"></i> Şifre Değiştir</button>
-                    <button onclick="excelIndir()" class="btn btn-excel" id="btnExcelIndir"><i class="fa-solid fa-file-excel"></i> Excel İndir</button>
-                    <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success"><i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet</button>
+                    <button onclick="topluKaydet()" id="btnTopluKaydet" class="btn btn-success"><i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Kaydet</button>
                     <button onclick="location.reload()" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
                 </div>
             </div>
-            
-            <div class="d-flex justify-content-between align-items-center gap-2" style="margin-top:8px;">
-                <input type="text" id="aramaKutusu" class="form-control" style="max-width:300px;" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariEkranaBas()">
-                <div class="d-flex gap-2">
-                    <button class="btn-filter active" onclick="durumFiltrele('Tumu', this)">Tümü</button>
-                    <button class="btn-filter" onclick="durumFiltrele('Bekliyor', this)">Bekleyenler</button>
-                    <button class="btn-filter" onclick="durumFiltrele('Uretimde', this)">Üretimdekiler</button>
-                    <button class="btn-filter" onclick="durumFiltrele('Bitti', this)">Bitenler</button>
-                </div>
+            <div style="margin-top:8px;">
+                <input type="text" id="aramaKutusu" class="form-control" placeholder="Sipariş No, Tanım veya İlgili No ara..." oninput="kartlariEkranaBas()">
             </div>
         </div>
-
         <div id="isKartlari"></div>
-    </div>
-
-    <!-- Şifre Değiştirme Modal -->
-    <div id="sifreModal" class="modal d-none">
-        <div class="card" style="width:340px; padding:20px; border-left:none;">
-            <h4 style="margin:0 0 12px 0; color:var(--primary);"><i class="fa-solid fa-key"></i> Şifre Değiştir</h4>
-            <label style="font-size:12px; font-weight:600;">Yeni Şifreniz:</label>
-            <input type="text" id="newPass1" class="form-control" style="margin-bottom:8px; -webkit-text-security: disc;" placeholder="Yeni Şifre" autocomplete="new-password" spellcheck="false">
-            <label style="font-size:12px; font-weight:600;">Yeni Şifre (Tekrar):</label>
-            <input type="text" id="newPass2" class="form-control" style="margin-bottom:12px; -webkit-text-security: disc;" placeholder="Tekrar" autocomplete="new-password" spellcheck="false">
-            <div class="d-flex gap-2">
-                <button onclick="sifreGuncelle()" class="btn btn-success" style="flex:1;">Kaydet</button>
-                <button onclick="sifreModalKapat()" class="btn btn-danger" style="flex:1;">İptal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toplu Excel Yükleme Modal -->
-    <div id="supplierExcelModal" class="modal d-none">
-        <div class="card" style="width:440px; padding:24px; border-left:none;">
-            <h4 style="margin:0 0 8px 0; color:var(--primary);"><i class="fa-solid fa-file-import"></i> Toplu Excel Güncelleme</h4>
-            <div class="drop-zone" onclick="document.getElementById('supplierFileInput').click()">
-                <i class="fa-solid fa-file-excel" style="font-size:36px; color:#059669; margin-bottom:8px;"></i>
-                <h5 style="margin:0 0 4px 0;">Güncellenmiş Excel Dosyasını Seçin</h5>
-                <input type="file" id="supplierFileInput" class="d-none" accept=".xlsx, .xls, .csv" onchange="supplierExcelYukle(event)">
-            </div>
-            <div id="supplierUploadStatus" style="margin-top:12px; text-align:center; font-size:13px;"></div>
-            <div style="margin-top:16px; text-align:right;">
-                <button onclick="supplierExcelModalKapat()" class="btn btn-danger">Kapat</button>
-            </div>
-        </div>
     </div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzSjZkpvUu4hELCuR6KOCUpv118CA-C_ckXwtKzJTpy3yqbnnjcdgbxi8YlcLiH9mI0/exec"; 
-    const ADMIN_SIFRE = "1234"; 
+    // BURAYA Kendi Google Apps Script Web Uygulama URL'nizi yapıştırın:
+    const API_URL = "https://script.google.com/macros/s/AKfycbzAxCcuYbdIoxVWsUSB8rGbhiN_vYasKW4vvisEsQfaKLiPpxRoLnw72JoEezCR9SKH/exec"; 
 
-    let aktifFirma = "";
-    let girilenSifre = "";
     let mevcutIsler = [];
-    let aktifDurumFiltresi = "Tumu";
-
-    function scriptTemizle() {
-        const tempScripts = document.querySelectorAll('.jsonp-temp');
-        tempScripts.forEach(s => s.remove());
-    }
+    let aktifFirma = "";
 
     function jsonpIstek(params, callbackName, onSuccess) {
-        scriptTemizle();
+        const oldScript = document.getElementById('jsonp-script');
+        if (oldScript) oldScript.remove();
+
         window[callbackName] = function(res) {
-            scriptTemizle();
             onSuccess(res);
         };
-        
+
         let url = API_URL + "?callback=" + callbackName;
         for (let key in params) {
             url += "&" + key + "=" + encodeURIComponent(params[key]);
         }
-        
+
         const script = document.createElement('script');
-        script.className = 'jsonp-temp';
+        script.id = 'jsonp-script';
         script.src = url;
-        script.onerror = function() {
-            alert("Sunucuyla bağlantı kurulamadı.");
-        };
+        script.onerror = function() { alert("Sunucu bağlantı hatası!"); };
         document.body.appendChild(script);
     }
 
     function girisYap() {
         aktifFirma = document.getElementById("firmaAdi").value.trim();
-        girilenSifre = document.getElementById("firmaPass").value.trim();
+        if(!aktifFirma) return alert("Lütfen firma adını yazın.");
 
-        if(!aktifFirma) return alert("Lütfen firma adınızı girin.");
-        if(!girilenSifre) return alert("Lütfen şifrenizi girin.");
-
-        if(aktifFirma.toUpperCase() === "ADMIN") {
-            if(girilenSifre === ADMIN_SIFRE) {
-                document.getElementById("loginSection").classList.add("d-none");
-                document.getElementById("headerSection").classList.add("d-none");
-                document.getElementById("adminSection").classList.remove("d-none");
-            } else {
-                alert("Hatalı yönetici şifresi!");
-            }
-        } else {
-            isleriListele();
-        }
-    }
-
-    function isleriListele() {
         document.getElementById("loginSection").classList.add("d-none");
         document.getElementById("listSection").classList.remove("d-none");
-        document.getElementById("headerSection").classList.add("d-none");
-        document.getElementById("welcomeText").innerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
-        document.getElementById("isKartlari").innerHTML = '<div class="text-center" style="padding:20px;"><div class="spinner"></div><p style="color:var(--text-muted); font-size:13px;">Veriler yükleniyor...</p></div>';
+        document.getElementById("welcomeTextinnerText = aktifFirma.toUpperCase() + " İŞ LİSTESİ";
+        document.getElementById("isKartlari").innerHTML = '<div class="spinner"></div>';
 
-        jsonpIstek({ action: "read", firma: aktifFirma, sifre: girilenSifre }, "okumaGeriDonus", function(res) {
-            if (Array.isArray(res)) {
+        jsonpIstek({ action: "read", firma: aktifFirma }, "veriDonus", function(res) {
+            if(Array.isArray(res)) {
                 mevcutIsler = res;
                 kartlariEkranaBas();
             } else {
-                alert("Veriler yüklenirken hata oluştu: " + (res.message || "Bilinmeyen hata"));
+                alert("Veri yüklenemedi!");
                 location.reload();
             }
         });
     }
 
-    function sifreModalAc() { document.getElementById("sifreModal").classList.remove("d-none"); }
-    function sifreModalKapat() { document.getElementById("sifreModal").classList.add("d-none"); }
-    function supplierExcelModalAc() { 
-        document.getElementById("supplierUploadStatus").innerHTML = "";
-        document.getElementById("supplierFileInput").value = "";
-        document.getElementById("supplierExcelModal").classList.remove("d-none"); 
-    }
-    function supplierExcelModalKapat() { 
-        document.getElementById("supplierExcelModal").classList.add("d-none");
-        isleriListele();
-    }
-
-    function sifreGuncelle() {
-        var p1 = document.getElementById("newPass1").value.trim();
-        var p2 = document.getElementById("newPass2").value.trim();
-        if(!p1 || !p2) return alert("Şifre alanlarını doldurun.");
-        if(p1 !== p2) return alert("Şifreler uyuşmuyor!");
-
-        jsonpIstek({ action: "changePassword", firma: aktifFirma, yeniSifre: p1 }, "sifreGuncelleDonus", function(res) {
-            if(res && res.status === "success") {
-                alert("Şifreniz başarıyla değiştirildi!");
-                sifreModalKapat();
-                girilenSifre = p1;
-                document.getElementById("newPass1").value = "";
-                document.getElementById("newPass2").value = "";
-            } else {
-                alert("Şifre değiştirilemedi: " + (res.message || "Hata"));
-            }
-        });
-    }
-
-    function formatVeri(deger) {
-        if (deger === undefined || deger === null) return "-";
-        var str = String(deger).trim();
-        return str === "" ? "-" : str;
-    }
-
-    function formatTarihInput(tarihStr) {
-        if (!tarihStr) return "";
-        try {
-            var d = new Date(tarihStr);
-            if (!isNaN(d.getTime())) {
-                return d.toISOString().split("T")[0];
-            }
-        } catch(e) {}
-        return "";
-    }
-
     function kartlariEkranaBas() {
+        var arama = document.getElementById("aramaKutusu").value.toLowerCase();
+        var filtrelenmis = mevcutIsler.filter(i => 
+            i.sprsNo.toLowerCase().includes(arama) || 
+            i.tanim.toLowerCase().includes(arama) || 
+            i.ilgiliNo.toLowerCase().includes(arama)
+        );
+
+        document.getElementById("totalCount").innerText = "(" + filtrelenmis.length + " Kalem)";
         var html = "";
-        var aramaMetni = document.getElementById("aramaKutusu") ? document.getElementById("aramaKutusu").value.toLowerCase() : "";
-        
-        var filtrelenmis = mevcutIsler.filter(function(is) {
-            var fDurum = formatVeri(is.firmadurumu);
-            var aramaUyum = (
-                formatVeri(is.sprsno).toLowerCase().includes(aramaMetni) ||
-                formatVeri(is.tanim).toLowerCase().includes(aramaMetni) ||
-                formatVeri(is.ilgiliNo).toLowerCase().includes(aramaMetni)
-            );
-            var durumUyum = true;
-            if (aktifDurumFiltresi === "Bekliyor") durumUyum = (fDurum === "Bekliyor");
-            else if (aktifDurumFiltresi === "Uretimde") durumUyum = (fDurum === "Uretimde" || fDurum === "Üretimde");
-            else if (aktifDurumFiltresi === "Bitti") durumUyum = (fDurum === "Bitti");
-            return aramaUyum && durumUyum;
+
+        filtrelenmis.forEach(function(is) {
+            var id = is.id;
+            var durum = is.firmaDurumu || "Bekliyor";
+            var badgeCls = durum === "Bitti" ? "badge-bitti" : (durum === "Üretimde" || durum === "Uretimde" ? "badge-uretimde" : "badge-bekliyor");
+
+            html += '<div class="card" id="card_' + id + '">' +
+                '<div class="d-flex justify-content-between align-items-center mb-1">' +
+                    '<div class="d-flex align-items-center gap-2">' +
+                        '<span class="badge ' + badgeCls + '">' + durum + '</span>' +
+                        '<strong>' + is.tanim + '</strong>' +
+                        '<span class="info-pill">Sp No: <b>' + is.sprsNo + '</b></span>' +
+                        '<span class="info-pill">İlgili No: <b style="color:var(--primary);">' + is.ilgiliNo + '</b></span>' +
+                    '</div>' +
+                    '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + is.ob + '</span>' +
+                '</div>' +
+                '<div class="d-flex gap-2 align-items-center" style="margin-top:8px;">' +
+                    '<div style="width:130px;"><select id="durum_' + id + '" class="form-select" onchange="isaretle(' + id + ')">' +
+                        '<option value="Bekliyor" ' + (durum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
+                        '<option value="Üretimde" ' + (durum=='Üretimde'||durum=='Uretimde'?'selected':'') + '>Üretimde</option>' +
+                        '<option value="Bitti" ' + (durum=='Bitti'?'selected':'') + '>Bitti</option>' +
+                    '</select></div>' +
+                    '<div style="width:100px;"><input type="number" id="adet_' + id + '" class="form-control" value="' + is.uretilenMiktar + '" oninput="isaretle(' + id + ')"></div>' +
+                    '<div style="width:140px;"><input type="date" id="tarih_' + id + '" class="form-control" value="' + is.teslimTarihi.split('T')[0] + '" onchange="isaretle(' + id + ')"></div>' +
+                    '<div style="flex:1;"><input type="text" id="not_' + id + '" class="form-control" placeholder="Not..." value="' + is.yansanayiNotu + '" oninput="isaretle(' + id + ')"></div>' +
+                '</div>' +
+            '</div>';
         });
 
-        document.getElementById("totalCount").innerText = "(" + filtrelenmis.length + " / " + mevcutIsler.length + " Kalem)";
-
-        if(filtrelenmis.length === 0) {
-            html = '<div style="background:#fff; border:1px solid var(--border-color); padding:16px; border-radius:8px; text-align:center; color:var(--text-muted);">Uygun iş emri bulunamadı.</div>';
-        } else {
-            filtrelenmis.forEach(function(is) {
-                var cardId = formatVeri(is.id);
-                var fDurum = formatVeri(is.firmadurumu);
-                var miktar = is.uretilendir_miktar ? formatVeri(is.uretilendir_miktar) : "0";
-                var notIcerigi = is.yansanayinotu ? formatVeri(is.yansanayinotu) : "";
-                var teslimTarihInput = formatTarihInput(is.teslimtarihi);
-                
-                var ilgiliNo = formatVeri(is.ilgiliNo || is.ilgili_no || is.ilgiliNumara);
-                var sprsNo = formatVeri(is.sprsno || is.siparisNo || is.sprsNo);
-                var tanimMetni = formatVeri(is.tanim || is.satirTanimi || is.aciklama);
-
-                var badgeClass = "badge-bekliyor";
-                if(fDurum === "Uretimde" || fDurum === "Üretimde") badgeClass = "badge-uretimde";
-                if(fDurum === "Bitti") badgeClass = "badge-bitti";
-
-                html += '<div class="card" id="card_' + cardId + '">' +
-                    '<div class="d-flex justify-content-between align-items-center mb-1">' +
-                        '<div class="d-flex align-items-center gap-2">' +
-                            '<span class="badge ' + badgeClass + '" id="badge_' + cardId + '">' + fDurum + '</span>' +
-                            '<strong>' + tanimMetni + '</strong>' +
-                            '<span class="info-pill">Sp No: <b>' + sprsNo + '</b></span>' +
-                            '<span class="info-pill">İlgili No: <b style="color:var(--primary);">' + ilgiliNo + '</b></span>' +
-                        '</div>' +
-                        '<span class="info-pill" style="background:#e0e7ff; color:var(--primary); font-weight:700;">Bakiye: ' + formatVeri(is.ob) + '</span>' +
-                    '</div>' +
-                    '<div class="d-flex gap-2 align-items-center" style="margin-top:6px;">' +
-                        '<div style="width:130px;"><select id="durum_' + cardId + '" class="form-select" onchange="degisiklikVurgula(\'' + cardId + '\')">' +
-                            '<option value="Bekliyor" ' + (fDurum=='Bekliyor'?'selected':'') + '>Bekliyor</option>' +
-                            '<option value="Uretimde" ' + (fDurum=='Uretimde' || fDurum=='Üretimde'?'selected':'') + '>Üretimde</option>' +
-                            '<option value="Bitti" ' + (fDurum=='Bitti'?'selected':'') + '>Bitti</option>' +
-                        '</select></div>' +
-                        '<div style="width:90px;"><input type="number" id="adet_' + cardId + '" class="form-control" value="' + miktar + '" oninput="degisiklikVurgula(\'' + cardId + '\')"></div>' +
-                        '<div style="width:130px;"><input type="date" id="teslim_' + cardId + '" class="form-control" value="' + teslimTarihInput + '" onchange="degisiklikVurgula(\'' + cardId + '\')"></div>' +
-                        '<div style="flex:1;"><input type="text" id="not_' + cardId + '" class="form-control" placeholder="Not..." value="' + notIcerigi + '" oninput="degisiklikVurgula(\'' + cardId + '\')"></div>' +
-                        '<div><button onclick="tekliKaydet(\'' + cardId + '\')" class="btn btn-success" style="padding:6px 12px; font-size:12px;"><i class="fa-solid fa-check"></i> Kaydet</button></div>' +
-                    '</div>' +
-                '</div>';
-            });
-        }
-        document.getElementById("isKartlari").innerHTML = html;
+        document.getElementById("isKartlari").innerHTML = html || '<div style="text-align:center; padding:20px; color:var(--text-muted);">Kayıt bulunamadı.</div>';
     }
 
-    function degisiklikVurgula(cardId) {
-        document.getElementById("card_" + cardId).classList.add("modified");
-    }
-
-    function tekliKaydet(cardId) {
-        var veri = {
-            id: String(cardId),
-            yeniDurum: document.getElementById("durum_" + cardId).value,
-            yeniMiktar: document.getElementById("adet_" + cardId).value,
-            teslimTarihi: document.getElementById("teslim_" + cardId).value,
-            not: document.getElementById("not_" + cardId).value
-        };
-
-        jsonpIstek({ action: "update", data: JSON.stringify([veri]) }, "tekliKaydetDonus", function(res) {
-            if (res && res.status === "success") {
-                alert("Satır başarıyla kaydedildi!");
-                isleriListele();
-            } else {
-                alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
-            }
-        });
+    function isaretle(id) {
+        document.getElementById("card_" + id).classList.add("modified");
     }
 
     function topluKaydet() {
-        const degisenKartlar = document.querySelectorAll('.card.modified');
-        if (degisenKartlar.length === 0) return alert("Değişen kayıt yok.");
+        var modifiedCards = document.querySelectorAll('.card.modified');
+        if(modifiedCards.length === 0) return alert("Değiştirilen kayıt yok.");
 
-        let guncellenecekler = [];
-        degisenKartlar.forEach(function(kart) {
-            var cardId = kart.id.replace('card_', '');
+        var guncellenecekler = [];
+        modifiedCards.forEach(function(card) {
+            var id = card.id.replace('card_', '');
             guncellenecekler.push({
-                id: String(cardId),
-                yeniDurum: document.getElementById("durum_" + cardId).value,
-                yeniMiktar: document.getElementById("adet_" + cardId).value,
-                teslimTarihi: document.getElementById("teslim_" + cardId).value,
-                not: document.getElementById("not_" + cardId).value
+                id: id,
+                yeniDurum: document.getElementById("durum_" + id).value,
+                yeniMiktar: document.getElementById("adet_" + id).value,
+                teslimTarihi: document.getElementById("tarih_" + id).value,
+                not: document.getElementById("not_" + id).value
             });
         });
 
         const btn = document.getElementById("btnTopluKaydet");
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
 
-        jsonpIstek({ action: "update", data: JSON.stringify(guncellenecekler) }, "topluKaydetDonus", function(res) {
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Toplu Kaydet';
-            btn.disabled = false;
-
-            if (res && res.status === "success") {
-                alert("Tüm değişiklikler başarıyla kaydedildi!");
-                isleriListele();
+        jsonpIstek({ action: "update", data: JSON.stringify(guncellenecekler) }, "kaydetDonus", function(res) {
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Kaydet';
+            if(res && res.status === "success") {
+                alert("Değişiklikler başarıyla kaydedildi!");
+                girisYap();
             } else {
-                alert("Kayıt hatası: " + (res.message || "Bilinmeyen hata"));
+                alert("Kayıt hatası!");
             }
         });
-    }
-
-    function excelIndir() {
-        window.open(API_URL + "?action=read&firma=ADMIN&sifre=1234", "_blank");
-    }
-
-    function supplierExcelYukle(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const statusDiv = document.getElementById("supplierUploadStatus");
-        statusDiv.innerHTML = '<div class="spinner"></div><p>Yükleniyor...</p>';
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            let guncellenecekler = [];
-
-            jsonData.forEach(row => {
-                let satirNo = null;
-                let hamDurum = "Bekliyor";
-                let yeniMiktar = "0";
-                let tTarih = "";
-                let notVal = "";
-
-                for (let key in row) {
-                    let k = key.toLowerCase().trim();
-                    if (k.includes("satır no") || k.includes("satir no") || k === "id") satirNo = row[key];
-                    if (k.includes("durum")) hamDurum = row[key];
-                    if (k.includes("miktar") || k.includes("üretilen")) yeniMiktar = row[key];
-                    if (k.includes("tarih")) tTarih = row[key];
-                    if (k.includes("not")) notVal = row[key];
-                }
-
-                if (satirNo) {
-                    guncellenecekler.push({
-                        id: String(satirNo),
-                        yeniDurum: hamDurum,
-                        yeniMiktar: String(yeniMiktar),
-                        teslimTarihi: tTarih,
-                        not: String(notVal)
-                    });
-                }
-            });
-
-            jsonpIstek({ action: "update", data: JSON.stringify(guncellenecekler) }, "excelYukleDonus", function(res) {
-                if (res && res.status === "success") {
-                    statusDiv.innerHTML = '<div style="color:var(--success);">Başarıyla kaydedildi!</div>';
-                    setTimeout(() => supplierExcelModalKapat(), 1200);
-                } else {
-                    statusDiv.innerHTML = '<div style="color:var(--danger);">Hata: ' + res.message + '</div>';
-                }
-            });
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function jdeExcelYukle(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const statusDiv = document.getElementById("uploadStatus");
-        statusDiv.innerHTML = '<div class="spinner"></div><p>JDE güncelleniyor...</p>';
-
-        const readerObj = new FileReader();
-        readerObj.onload = function(e) {
-            const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-
-            jsonpIstek({ action: "upload", excelData: JSON.stringify(jsonData) }, "jdeYukleDonus", function(res) {
-                if (res && res.status === "success") {
-                    statusDiv.innerHTML = '<div style="color:var(--success);">Güncellendi!</div>';
-                    alert("JDE verileri başarıyla yüklendi!");
-                } else {
-                    statusDiv.innerHTML = '<div style="color:var(--danger);">Hata!</div>';
-                }
-            });
-        };
-        readerObj.readAsArrayBuffer(file);
-    }
-
-    function durumFiltrele(durum, btnElem) {
-        aktifDurumFiltresi = durum;
-        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
-        btnElem.classList.add('active');
-        kartlariEkranaBas();
     }
 </script>
 </body>
