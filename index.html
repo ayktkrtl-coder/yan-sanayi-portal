@@ -379,8 +379,8 @@
                 var teslimTarihInput = formatTarihInput(is.teslimtarihi);
                 
                 // Güvenli anahtar eşlemesi
-                var ilgiliNo = is.ilgiliNo !== undefined ? formatVeri(is.ilgiliNo) : "-";
-                var sprsNo = is.sprsno !== undefined ? formatVeri(is.sprsno) : "-";
+                var ilgiliNo = formatVeri(is.ilgiliNo);
+                var sprsNo = formatVeri(is.spNo !== undefined ? is.spNo : is.sprsno);
                 var tanimMetni = is.tanim !== undefined ? formatVeri(is.tanim) : "-";
 
                 var badgeClass = "badge-bekliyor";
